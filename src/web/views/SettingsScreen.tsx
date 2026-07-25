@@ -9,52 +9,23 @@ interface Props {
   onSaved(next: CharacterConfig[]): void;
 }
 
-type Draft = Record<CharacterId, Pick<CharacterConfig, 'name' | 'role' | 'model' | 'description'>>;
-
-const CUSTOM_SENTINEL = '__custom__';
+type Draft = Record<CharacterId, { name: string }>;
 
 function toDraft(configs: CharacterConfig[]): Draft {
   const d = {} as Draft;
-  for (const c of configs) {
-    d[c.id] = {
-      name: c.name ?? '',
-      role: c.role ?? '',
-      model: c.model ?? '',
-      description: c.description ?? '',
-    };
-  }
+  for (const c of configs) d[c.id] = { name: c.name ?? '' };
   return d;
-}
-
-function diff(original: CharacterConfig, draft: Draft[CharacterId]): Partial<Draft[CharacterId]> | null {
-  const patch: Partial<Draft[CharacterId]> = {};
-  if (draft.name !== (original.name ?? '')) patch.name = draft.name;
-  if (draft.role !== (original.role ?? '')) patch.role = draft.role;
-  if (draft.model !== (original.model ?? '')) patch.model = draft.model;
-  if (draft.description !== (original.description ?? '')) patch.description = draft.description;
-  return Object.keys(patch).length ? patch : null;
 }
 
 export function SettingsScreen({ configs, onClose, onSaved }: Props) {
   const [draft, setDraft] = useState<Draft>(() => toDraft(configs));
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
-  const [modelOptions, setModelOptions] = useState<string[]>(['fable', 'opus', 'sonnet', 'haiku']);
-  const [customMode, setCustomMode] = useState<Partial<Record<CharacterId, boolean>>>({});
 
   useEffect(() => { setDraft(toDraft(configs)); }, [configs]);
 
-  useEffect(() => {
-    fetch('/config/models')
-      .then((r) => r.json())
-      .then((data) => {
-        if (Array.isArray(data?.models) && data.models.length > 0) setModelOptions(data.models);
-      })
-      .catch(() => { /* keep fallback */ });
-  }, []);
-
-  function update(id: CharacterId, key: keyof Draft[CharacterId], value: string) {
-    setDraft((prev) => ({ ...prev, [id]: { ...prev[id], [key]: value } }));
+  function update(id: CharacterId, value: string) {
+    setDraft((prev) => ({ ...prev, [id]: { name: value } }));
   }
 
   async function saveAll() {
@@ -65,12 +36,12 @@ export function SettingsScreen({ configs, onClose, onSaved }: Props) {
     let latest: CharacterConfig[] = configs;
     try {
       for (const cfg of configs) {
-        const patch = diff(cfg, draft[cfg.id]);
-        if (!patch) continue;
+        const newName = draft[cfg.id]?.name?.trim() ?? '';
+        if (!newName || newName === (cfg.name ?? '')) continue;
         const r = await fetch(`/config/characters/${cfg.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(patch),
+          body: JSON.stringify({ name: newName }),
         });
         if (!r.ok) { failed += 1; continue; }
         const data = await r.json();
@@ -95,64 +66,28 @@ export function SettingsScreen({ configs, onClose, onSaved }: Props) {
           <h2>⚙ TEAM SETUP</h2>
           <button className="settings-close" onClick={onClose}>✕</button>
         </div>
-        <p className="settings-hint">
-          각 팀원의 이름·역할·모델·설명을 편집. 저장 시 <code>~/.claude-office/overrides.json</code>에 지속됨.
-        </p>
-        <p className="settings-warn">
-          ⚠ 모델 값은 <b>디스플레이 전용</b>. 실제 서브에이전트가 사용하는 모델은 Claude Code 세션에서
-          <code>claude --model &lt;name&gt;</code> 또는 Agent 툴 호출의 <code>model</code> 파라미터로 결정됨.
-          이 화면은 팀 구성 문서화 용도.
+        <p className="settings-info">
+          이름만 편집 가능합니다. 역할과 설명은 실제 라우팅 조건에 종속되어 <code>config/characters.json</code>에서
+          관리되며, 모델은 JSONL의 <code>assistant.message.model</code>에서 자동 관측되어 카드에 표시됩니다.
         </p>
 
-        <div className="settings-list">
+        <div className="settings-list settings-list-compact">
           {configs.map((cfg) => {
             const d = draft[cfg.id];
             if (!d) return null;
             return (
               <div key={cfg.id} className="settings-row">
                 <div className="settings-avatar">
-                  <PixelAvatar id={cfg.id} size={48} />
+                  <PixelAvatar id={cfg.id} size={40} />
                 </div>
                 <div className="settings-fields">
-                  <div className="settings-field-row">
-                    <label>이름
-                      <input type="text" value={d.name}
-                             onChange={(e) => update(cfg.id, 'name', e.target.value)} />
-                    </label>
-                    <label>역할
-                      <input type="text" value={d.role}
-                             onChange={(e) => update(cfg.id, 'role', e.target.value)} />
-                    </label>
-                    <label>모델
-                      {customMode[cfg.id] ? (
-                        <input type="text" value={d.model}
-                               placeholder="예: claude-opus-4-7"
-                               onChange={(e) => update(cfg.id, 'model', e.target.value)}
-                               onBlur={() => {
-                                 if (!d.model) setCustomMode({ ...customMode, [cfg.id]: false });
-                               }} />
-                      ) : (
-                        <select
-                          value={modelOptions.includes(d.model ?? '') || !d.model ? d.model : CUSTOM_SENTINEL}
-                          onChange={(e) => {
-                            if (e.target.value === CUSTOM_SENTINEL) {
-                              setCustomMode({ ...customMode, [cfg.id]: true });
-                              update(cfg.id, 'model', '');
-                            } else {
-                              update(cfg.id, 'model', e.target.value);
-                            }
-                          }}>
-                          <option value="">(미지정)</option>
-                          {modelOptions.map((m) => <option key={m} value={m}>{m}</option>)}
-                          <option value={CUSTOM_SENTINEL}>직접 입력…</option>
-                        </select>
-                      )}
-                    </label>
-                  </div>
-                  <label className="settings-desc-label">설명
-                    <textarea rows={2} value={d.description}
-                              onChange={(e) => update(cfg.id, 'description', e.target.value)} />
+                  <label>이름
+                    <input type="text" value={d.name} onChange={(e) => update(cfg.id, e.target.value)} />
                   </label>
+                  <div className="settings-locked">
+                    <span className="locked-role">{cfg.role}</span>
+                    {cfg.description && <span className="locked-desc">{cfg.description}</span>}
+                  </div>
                 </div>
               </div>
             );

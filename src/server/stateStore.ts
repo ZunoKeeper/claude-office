@@ -14,6 +14,7 @@ export interface StateStore extends EventEmitter {
   get(id: CharacterId): CharacterState;
   applyEvent(id: CharacterId, event: DomainEvent, activityLabel?: string): CharacterState;
   setLine(id: CharacterId, text: string, ttlMs: number): CharacterState;
+  setModel(id: CharacterId, model: string): CharacterState;
 }
 
 export function createStateStore(ids: CharacterId[]): StateStore {
@@ -99,6 +100,13 @@ export function createStateStore(ids: CharacterId[]): StateStore {
   bus.setLine = (id, text, ttlMs): CharacterState => {
     const s = map.get(id)!;
     s.lastLine = { text, ts: Date.now(), ttlMs };
+    return emit(id);
+  };
+
+  bus.setModel = (id, model): CharacterState => {
+    const s = map.get(id)!;
+    if (s.currentModel === model) return s;
+    s.currentModel = model;
     return emit(id);
   };
 

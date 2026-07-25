@@ -11,11 +11,13 @@ Kairosoft *Game Dev Story* 톤의 8비트 레트로 픽셀 아트 UI로 팀원�
 - `npm run build`
 - `npm start` → http://localhost:4000 접속
 
-## 개발 모드
+## 개발 모드 (라이브 리로드)
 
-- `npm run dev` (서버 + Vite 동시 실행)
-- 서버: `http://localhost:4000`
-- Vite: `http://localhost:5173` (자동 프록시)
+- `npm run dev` — 서버(`tsx watch`) + Vite(HMR)를 동시 실행. 소스 저장 시:
+  - **프론트엔드**: Vite HMR로 즉시 화면 반영 (브라우저 새로고침 불필요)
+  - **백엔드**: `tsx watch`가 TS 변경 감지 → Fastify 자동 재기동
+- 서버: `http://localhost:4000` / Vite: `http://localhost:5173` (자동 프록시)
+- **프로덕션 실행 (`npm start`)에서는 자동 재기동 없음** — 수정 후 `pkill node ; npm run build ; npm start` 필요
 
 ## 첫 실행
 
@@ -40,11 +42,19 @@ Kairosoft *Game Dev Story* 톤의 8비트 레트로 픽셀 아트 UI로 팀원�
 
 ## 팀 설정 (⚙ SETUP)
 
-- 상단 우측 **⚙ SETUP** 버튼 → 모달에서 각 캐릭터의 **이름 · 역할 · 모델 · 설명** 편집
-- Model 드롭다운: 서버 `/config/models` 응답 기준 (`fable` / `opus` / `sonnet` / `haiku` / 미지정) + **직접 입력**으로 임의 문자열 사용 가능 (예: `claude-opus-4-7`)
-- 저장 시 `PATCH /config/characters/:id`로 즉시 반영 (재기동 불필요)
-- 오버라이드는 `~/.claude-office/overrides.json`에 지속 (base config는 손대지 않음)
+- 상단 우측 **⚙ SETUP** 버튼 → 모달에서 **이름만** 편집 가능
+- 역할·설명은 실제 라우팅 조건과 붙어 있어 `config/characters.json`에서 관리
+- 모델은 JSONL의 `assistant.message.model`에서 **자동 관측**되어 카드에 실시간 표시 (편집 불가)
+- 이름 오버라이드는 `~/.claude-office/overrides.json`에 지속됨
 - 초기화하려면 위 파일 삭제 후 새로고침
+
+## 관측되는 모델 (자동)
+
+각 카드 상단에 `◈ opus-4-7` 형태의 뱃지로 실제 사용 중인 모델이 표시됩니다.
+- **kim (Main 세션)**: Main JSONL `assistant.message.model` 그대로
+- **활동 기반 캐릭터** (yu-dev/han-qa/seo-designer/choi-office): 해당 활동을 실제로 실행한 세션의 모델 반영
+- **서브에이전트 캐릭터** (park/lee/jo/jung): 해당 서브에이전트 JSONL의 모델 반영
+- 아직 활성화된 적 없는 캐릭터: `◈ 대기` (관측 대기)
 
 ## 환경 변수
 

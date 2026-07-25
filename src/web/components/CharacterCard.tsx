@@ -9,17 +9,24 @@ interface Props {
   state: CharacterState;
   name: string;
   role: string;
-  model?: string;
   description?: string;
 }
 
-export function CharacterCard({ state, name, role, model, description }: Props) {
+/** Trim Anthropic's full model IDs to a short pill: `claude-opus-4-7` → `opus-4-7`. */
+function shortenModel(m?: string): string | null {
+  if (!m) return null;
+  const trimmed = m.replace(/^claude-/, '').replace(/-\d{8}$/, '');
+  return trimmed || null;
+}
+
+export function CharacterCard({ state, name, role, description }: Props) {
   const now = useNow(1000);
   const updatedAgo = state.lastUpdatedAt ? formatRelative(now - state.lastUpdatedAt) : '—';
   const activityElapsed = state.currentActivity
     ? Math.max(0, Math.floor((now - state.currentActivity.startedAt) / 1000))
     : null;
   const isFresh = state.lastUpdatedAt && now - state.lastUpdatedAt < 1500;
+  const modelLabel = shortenModel(state.currentModel);
 
   return (
     <div className={`desk ${state.status === 'error' ? 'error' : ''} status-${state.status}`}>
@@ -34,7 +41,15 @@ export function CharacterCard({ state, name, role, model, description }: Props) 
               {isFresh && <span className="live-dot" title="방금 업데이트됨" />}
             </span>
             <span className="role">{role}</span>
-            {model && <span className="model-badge" title={`AI 모델: ${model}`}>◈ {model}</span>}
+            {modelLabel ? (
+              <span className="model-badge live" title={`관측된 실제 모델: ${state.currentModel}`}>
+                ◈ {modelLabel}
+              </span>
+            ) : (
+              <span className="model-badge unknown" title="아직 이 캐릭터의 모델이 관측되지 않음">
+                ◈ 대기
+              </span>
+            )}
           </div>
         </div>
         <StatusBadge status={state.status} />

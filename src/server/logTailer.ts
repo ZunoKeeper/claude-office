@@ -4,7 +4,10 @@ import { stat } from 'node:fs/promises';
 import ndjson from 'ndjson';
 import path from 'node:path';
 
-interface Options { rootDir: string; onLine: (sessionId: string, raw: unknown) => void }
+interface Options {
+  rootDir: string;
+  onLine: (sessionId: string, raw: unknown, filePath: string) => void;
+}
 
 interface Handle { start(): Promise<void>; stop(): Promise<void> }
 
@@ -22,8 +25,10 @@ export function createLogTailer(rootDir: string, onLine: Options['onLine']): Han
       createReadStream(file, { start, end: st.size - 1 })
         .pipe(ndjson.parse({ strict: false }))
         .on('data', (obj: unknown) => {
-          const sid = (obj as { session_id?: string })?.session_id ?? path.basename(file, '.jsonl');
-          onLine(sid, obj);
+          const sid = (obj as { session_id?: string; sessionId?: string })?.session_id
+            ?? (obj as { sessionId?: string })?.sessionId
+            ?? path.basename(file, '.jsonl');
+          onLine(sid, obj, file);
         })
         .on('end', () => resolve())
         .on('error', () => resolve());

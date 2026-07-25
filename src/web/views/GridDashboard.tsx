@@ -24,7 +24,6 @@ export function GridDashboard({ configs }: Props) {
             state={characters[id] ?? empty(id)}
             name={cfg?.name ?? id}
             role={cfg?.role ?? ''}
-            model={cfg?.model}
             description={cfg?.description}
           />
         );

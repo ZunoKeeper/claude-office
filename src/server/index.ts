@@ -57,9 +57,6 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
       const body = (req.body ?? {}) as CharacterOverrides;
       const patch: CharacterOverrides = {};
       if (typeof body.name === 'string') patch.name = body.name.trim();
-      if (typeof body.role === 'string') patch.role = body.role.trim();
-      if (typeof body.model === 'string') patch.model = body.model.trim();
-      if (typeof body.description === 'string') patch.description = body.description.trim();
       overrides[id] = { ...(overrides[id] ?? {}), ...patch };
       characters = applyOverrides(baseCharacters, overrides);
       const target = await saveOverrides(overrides);
@@ -90,8 +87,92 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
 
   if (process.env.CM_TAIL_LOGS !== '0') {
     const processors = new Map<string, ReturnType<typeof createTranscriptProcessor>>();
+    // Two maps for agentId → character:
+    //   agentIdToChar (transient) — deleted on agent.stop, used for queue routing
+    //   agentIdToCharPersistent — never deleted, used for subagent model attribution
+    //     (subagent JSONLs may be processed after the parent Agent already completed,
+    //     so we cannot rely on the transient map alone)
     const agentIdToChar = new Map<string, ReturnType<typeof router.route>>();
-    const tailer = createLogTailer(path.join(homedir(), '.claude'), (sid, raw) => {
+    const agentIdToCharPersistent = new Map<string, ReturnType<typeof router.route>>();
+    // Buffer for models seen from subagent JSONLs BEFORE the parent Agent
+    // mapping arrived. Drained whenever agentIdToCharPersistent gets a new entry.
+    const pendingSubagentModels = new Map<string, string>();
+
+    function drainPendingModel(agentId: string): void {
+      const model = pendingSubagentModels.get(agentId);
+      const target = agentIdToCharPersistent.get(agentId);
+      if (model && target) {
+        store.setModel(target, model);
+        pendingSubagentModels.delete(agentId);
+      }
+    }
+
+    function attributeModel(raw: unknown, filePath: string): void {
+      const record = raw as { type?: string; message?: { model?: string } } | null;
+      if (!record || record.type !== 'assistant') return;
+      const model = record.message?.model;
+      if (typeof model !== 'string' || !model) return;
+
+      const subagentMatch = /\/subagents\/agent-([a-zA-Z0-9_-]+)\.jsonl$/.exec(filePath);
+      if (subagentMatch) {
+        const agentId = subagentMatch[1];
+        const target = agentIdToCharPersistent.get(agentId);
+        if (target) {
+          store.setModel(target, model);
+        } else {
+          // Parent mapping not yet processed — buffer until agent.start arrives.
+          pendingSubagentModels.set(agentId, model);
+        }
+      } else {
+        // Main session JSONL (e.g., ~/.claude/projects/<cwd>/<sessionId>.jsonl)
+        store.setModel('kim-team-lead', model);
+      }
+    }
+
+    // Extract subagent id → charId link from Agent tool_result content.
+    // The subagent JSONL filename is `agent-<subagentId>.jsonl`, and the
+    // subagentId is announced inside the parent's tool_result content as
+    // `agentId: <hex>`. We map the parent's tool_use_id back to a charId via
+    // agentIdToCharPersistent (which was set on the corresponding agent.start
+    // using tool_use.id as the key).
+    function linkSubagentIdIfPresent(raw: unknown): void {
+      const record = raw as {
+        type?: string;
+        message?: { content?: Array<{ type?: string; tool_use_id?: string; content?: unknown }> };
+      } | null;
+      if (!record || record.type !== 'user') return;
+      const blocks = record.message?.content;
+      if (!Array.isArray(blocks)) return;
+      for (const block of blocks) {
+        if (block?.type !== 'tool_result') continue;
+        const toolUseId = block.tool_use_id;
+        if (!toolUseId) continue;
+        const charId = agentIdToCharPersistent.get(toolUseId);
+        if (!charId) continue; // not an Agent tool_use we tracked
+        const text = typeof block.content === 'string'
+          ? block.content
+          : JSON.stringify(block.content ?? '');
+        const m = /agentId[:\s]*([a-fA-F0-9]{12,})/.exec(text);
+        if (!m) continue;
+        const subagentId = m[1];
+        // Mirror the mapping so subagent JSONL model attribution finds it
+        agentIdToCharPersistent.set(subagentId, charId);
+        drainPendingModel(subagentId);
+      }
+    }
+
+    function modelOfAssistantRecord(raw: unknown): string | null {
+      const record = raw as { type?: string; message?: { model?: string } } | null;
+      if (!record || record.type !== 'assistant') return null;
+      const m = record.message?.model;
+      return typeof m === 'string' && m ? m : null;
+    }
+
+    const tailer = createLogTailer(path.join(homedir(), '.claude'), (sid, raw, filePath) => {
+      attributeModel(raw, filePath);
+      linkSubagentIdIfPresent(raw);
+      const rawModel = modelOfAssistantRecord(raw);
+
       let proc = processors.get(sid);
       if (!proc) {
         proc = createTranscriptProcessor(sid);
@@ -104,6 +185,8 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
         if (evt.type === 'tool.pre' || evt.type === 'agent.start') {
           charId = router.route(evt);
           agentIdToChar.set(evt.agentId, charId);
+          agentIdToCharPersistent.set(evt.agentId, charId);
+          drainPendingModel(evt.agentId);
         } else if (evt.type === 'tool.post' || evt.type === 'agent.stop') {
           charId = agentIdToChar.get(evt.agentId) ?? router.route(evt);
           agentIdToChar.delete(evt.agentId);
@@ -112,9 +195,13 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
         }
         store.applyEvent(charId, evt);
 
-        // Virtual PL dispatch narration — makes park-planner visibly relay tasks.
-        // Every agent spawn (except when PL itself is the target) triggers a
-        // brief line on park-planner: "누구에게 맡깁시다".
+        // Attribute the source record's model to the routed character too,
+        // so activity-based characters (yu-dev, han-qa, seo-designer, choi-office)
+        // reflect the actual model that executed their work.
+        if (rawModel && (evt.type === 'tool.pre' || evt.type === 'agent.start')) {
+          store.setModel(charId, rawModel);
+        }
+
         if (evt.type === 'agent.start' && charId !== 'park-planner') {
           const target = characters.find((c) => c.id === charId);
           const name = target?.name ?? charId;

@@ -47,11 +47,13 @@ export function App() {
         </div>
       </header>
       <ReplayControls />
-      {showOnboarding ? (
-        <OnboardingScreen onComplete={completeOnboarding} />
-      ) : (
-        view === 'grid' ? <GridDashboard configs={configs} /> : <IsometricOffice configs={configs} />
-      )}
+      <main className="app-main">
+        {showOnboarding ? (
+          <OnboardingScreen onComplete={completeOnboarding} />
+        ) : (
+          view === 'grid' ? <GridDashboard configs={configs} /> : <IsometricOffice configs={configs} />
+        )}
+      </main>
       <EventTicker />
       {settingsOpen && (
         <SettingsScreen configs={configs} onClose={() => setSettingsOpen(false)} onSaved={setConfigs} />
