@@ -32,3 +32,11 @@ export function IsometricOffice({ configs }: { configs: CharacterConfig[] }) {
     </div>
   );
 }
+
+// Vite HMR: OfficeScene is instantiated once inside a useEffect([]) block, so
+// edits to the scene file don't re-run the effect and the stale scene keeps
+// rendering. Force a full page reload whenever this module (or its deps like
+// OfficeScene) is hot-updated so the new draw code takes effect.
+if (import.meta.hot) {
+  import.meta.hot.accept(() => window.location.reload());
+}
