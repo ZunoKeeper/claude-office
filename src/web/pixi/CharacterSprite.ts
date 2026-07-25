@@ -61,6 +61,14 @@ export class CharacterSprite extends Container {
   private statusRing = new Graphics();
   private nameLabel: Text;
 
+  // Speech bubble — rounded rect + tail + text. Positioned above the emote.
+  private bubbleContainer = new Container();
+  private bubbleGfx = new Graphics();
+  private bubbleText: Text;
+  private bubbleExpiresAtMs: number | null = null;
+  private bubbleElapsedMs = 0;
+  private bubbleVisible = false;
+
   private status: CharacterStatus = 'idle';
   private animState: AnimState = 'idle';
   private direction: Direction = 'S';
@@ -106,7 +114,63 @@ export class CharacterSprite extends Container {
     this.nameLabel.y = 8;
     this.addChild(this.nameLabel);
 
+    this.bubbleText = new Text({
+      text: '',
+      style: {
+        fontFamily: 'DotGothic16, monospace',
+        fontSize: 11,
+        fill: 0x1f1305,
+        wordWrap: true,
+        wordWrapWidth: 160,
+        align: 'center',
+      },
+    });
+    this.bubbleText.anchor.set(0.5, 0);
+    this.bubbleContainer.addChild(this.bubbleGfx);
+    this.bubbleContainer.addChild(this.bubbleText);
+    this.bubbleContainer.visible = false;
+    this.addChild(this.bubbleContainer);
+
     this.updateStatusRing();
+  }
+
+  showLine(text: string, ttlMs: number): void {
+    const trimmed = text.length > 120 ? text.slice(0, 118) + '…' : text;
+    this.bubbleText.style.wordWrapWidth = 200;
+    this.bubbleText.text = trimmed;
+    // Text metrics resolve after assignment; box wraps text so intrinsic width
+    // is bounded by wordWrapWidth.
+    const padX = 10;
+    const padY = 6;
+    const w = Math.max(70, this.bubbleText.width + padX * 2);
+    const h = this.bubbleText.height + padY * 2;
+    const halfW = w / 2;
+    this.bubbleGfx.clear();
+    this.bubbleGfx.roundRect(-halfW, 0, w, h, 8)
+      .fill(0xfffdf3)
+      .stroke({ color: 0x2a1a0a, width: 1.5 });
+    // Tail pointing down at the head
+    this.bubbleGfx.moveTo(-5, h).lineTo(0, h + 8).lineTo(5, h).closePath()
+      .fill(0xfffdf3).stroke({ color: 0x2a1a0a, width: 1.5 });
+    this.bubbleText.x = 0;
+    this.bubbleText.y = padY;
+
+    // Sit above the head+emote area. Emote is at y=-SPRITE_H*3-10, ~18px tall.
+    // Reserve 44px above sprite top so tail floats clear of emote.
+    const bubbleY = -SPRITE_H * PIXEL_SCALE - 44 - h;
+    this.bubbleContainer.y = bubbleY;
+    this.bubbleContainer.x = 0;
+    this.bubbleContainer.visible = true;
+    this.bubbleContainer.alpha = 1;
+    this.bubbleVisible = true;
+    this.bubbleElapsedMs = 0;
+    this.bubbleExpiresAtMs = Math.max(500, ttlMs);
+  }
+
+  private hideLine(): void {
+    this.bubbleContainer.visible = false;
+    this.bubbleVisible = false;
+    this.bubbleExpiresAtMs = null;
   }
 
   setStatus(next: CharacterStatus): void {
@@ -167,7 +231,7 @@ export class CharacterSprite extends Container {
     this.body.texture = this.atlas.get(this.id, this.currentPose());
   }
 
-  moveTo(x: number, y: number, durationMs: number): Promise<void> {
+  moveTo(x: number, y: number, durationMs: number, direction?: Direction): Promise<void> {
     if (this.tweenTo) {
       const prev = this.tweenTo.resolve;
       this.tweenTo = undefined;
@@ -179,12 +243,19 @@ export class CharacterSprite extends Container {
       return Promise.resolve();
     }
 
-    const dx = x - this.x;
-    const dy = y - this.y;
-    if (Math.abs(dx) > Math.abs(dy)) {
-      this.direction = dx > 0 ? 'E' : 'W';
+    if (direction) {
+      this.direction = direction;
     } else {
-      this.direction = dy > 0 ? 'S' : 'N';
+      // Fallback: derive from screen delta. In an isometric parent, this is
+      // wrong (screen dx/dy differs from world dx/dy) — callers there pass
+      // the direction explicitly.
+      const dx = x - this.x;
+      const dy = y - this.y;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        this.direction = dx > 0 ? 'E' : 'W';
+      } else {
+        this.direction = dy > 0 ? 'S' : 'N';
+      }
     }
     this.animState = 'walking';
     this.frame = 0;
@@ -247,6 +318,21 @@ export class CharacterSprite extends Container {
       this.body.y = -Math.abs(bob(this.frameElapsedMs, 3, WALK_FRAME_MS * 2));
     } else {
       this.body.y = 0;
+    }
+
+    // Speech bubble: pop-in scale + timed fade-out
+    if (this.bubbleVisible) {
+      this.bubbleElapsedMs += deltaMs;
+      const popIn = Math.min(1, this.bubbleElapsedMs / 160);
+      // Ease-out overshoot
+      const popScale = popIn < 0.7 ? popIn * 1.3 : 1 + (1 - popIn) * 0.15;
+      this.bubbleContainer.scale.set(popScale);
+      if (this.bubbleExpiresAtMs !== null && this.bubbleElapsedMs >= this.bubbleExpiresAtMs) {
+        // Fade out over 300ms after TTL
+        const fade = Math.min(1, (this.bubbleElapsedMs - this.bubbleExpiresAtMs) / 300);
+        this.bubbleContainer.alpha = 1 - fade;
+        if (fade >= 1) this.hideLine();
+      }
     }
 
     // Emote animation: hover + optional timed expire
