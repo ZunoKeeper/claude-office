@@ -1,5 +1,6 @@
 import type { CharacterState } from '../../shared/character.js';
 import { StatusBadge } from './StatusBadge.js';
+import { SpeechBubble } from './SpeechBubble.js';
 
 interface Props { state: CharacterState; name: string; role: string }
 
@@ -23,10 +24,7 @@ export function CharacterCard({ state, name, role }: Props) {
         </div>
       )}
       {state.lastLine && (
-        <div style={{
-          marginTop: 8, background: '#f3f4f6', padding: '6px 10px', borderRadius: 6,
-          fontSize: 13, fontStyle: 'italic',
-        }}>💬 {state.lastLine.text}</div>
+        <SpeechBubble text={state.lastLine.text} ts={state.lastLine.ts} ttlMs={state.lastLine.ttlMs} />
       )}
       <div style={{ marginTop: 10, display: 'flex', gap: 12, fontSize: 11, color: '#6b7280' }}>
         <span>🎫 {state.queue.length}</span>
