@@ -9,6 +9,20 @@ export class OfficeScene {
   private root = new Container();
   private ready = false;
   private sprites = new Map<CharacterId, CharacterSprite>();
+  private homePositions = new Map<CharacterId, { x: number; y: number }>();
+  private lastActivity = new Map<CharacterId, string | undefined>();
+
+  private toolDestination(toolName: string): { x: number; y: number } | null {
+    switch (toolName) {
+      case 'Bash':
+        return { x: 860, y: 160 }; // 서버실
+      case 'WebFetch':
+      case 'WebSearch':
+        return { x: 200, y: 160 }; // 회의실
+      default:
+        return null;
+    }
+  }
 
   constructor(private canvas: HTMLCanvasElement) {
     this.app = new Application();
@@ -54,8 +68,22 @@ export class OfficeScene {
         sprite.y = cfg.officeSeat.y;
         this.root.addChild(sprite);
         this.sprites.set(s.id, sprite);
+        this.homePositions.set(s.id, { x: cfg.officeSeat.x, y: cfg.officeSeat.y });
       }
       sprite.setStatus(s.status);
+
+      const currTool = s.currentActivity?.toolName;
+      const prevTool = this.lastActivity.get(s.id);
+      if (currTool !== prevTool) {
+        this.lastActivity.set(s.id, currTool);
+        const dest = currTool ? this.toolDestination(currTool) : null;
+        const home = this.homePositions.get(s.id);
+        if (dest) {
+          void sprite.moveTo(dest.x, dest.y, 700);
+        } else if (home) {
+          void sprite.moveTo(home.x, home.y, 500);
+        }
+      }
     }
   }
 

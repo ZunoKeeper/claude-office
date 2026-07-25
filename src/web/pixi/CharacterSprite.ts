@@ -24,6 +24,16 @@ const OUTLINE: Record<CharacterStatus, number | null> = {
   done: 0x22c55e,
 };
 
+interface Tween {
+  targetX: number;
+  targetY: number;
+  startX: number;
+  startY: number;
+  durationMs: number;
+  elapsed: number;
+  resolve: () => void;
+}
+
 export class CharacterSprite extends Container {
   private body = new Graphics();
   private statusDot = new Graphics();
@@ -31,6 +41,7 @@ export class CharacterSprite extends Container {
   private extraLabel: Text;
   private elapsed = 0;
   private currentStatus: CharacterStatus = 'off';
+  private tweenTo?: Tween;
 
   constructor(private id: CharacterId, name: string) {
     super();
@@ -76,8 +87,47 @@ export class CharacterSprite extends Container {
     }
   }
 
+  moveTo(x: number, y: number, durationMs: number): Promise<void> {
+    // If a previous tween is in flight, resolve it immediately so callers
+    // awaiting it don't leak; new tween supersedes.
+    if (this.tweenTo) {
+      const prev = this.tweenTo.resolve;
+      this.tweenTo = undefined;
+      prev();
+    }
+    if (durationMs <= 0) {
+      this.x = x;
+      this.y = y;
+      return Promise.resolve();
+    }
+    return new Promise<void>((resolve) => {
+      this.tweenTo = {
+        targetX: x,
+        targetY: y,
+        startX: this.x,
+        startY: this.y,
+        durationMs,
+        elapsed: 0,
+        resolve,
+      };
+    });
+  }
+
   tick(deltaMs: number): void {
     this.elapsed += deltaMs;
+    if (this.tweenTo) {
+      this.tweenTo.elapsed += deltaMs;
+      const t = Math.min(1, this.tweenTo.elapsed / this.tweenTo.durationMs);
+      // easeInOutQuad
+      const ease = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+      this.x = this.tweenTo.startX + (this.tweenTo.targetX - this.tweenTo.startX) * ease;
+      this.y = this.tweenTo.startY + (this.tweenTo.targetY - this.tweenTo.startY) * ease;
+      if (t >= 1) {
+        const done = this.tweenTo.resolve;
+        this.tweenTo = undefined;
+        done();
+      }
+    }
     if (this.currentStatus === 'idle' || this.currentStatus === 'working') {
       this.body.y = bob(this.elapsed, this.currentStatus === 'working' ? 3 : 1.5);
     } else {
