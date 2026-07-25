@@ -5,3 +5,5 @@ dist
 *.log
 .vite
 .DS_Store
+# Per-user runtime state — user installs hooks via onboarding, not repo
+.claude/
