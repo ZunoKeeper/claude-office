@@ -5,12 +5,22 @@ import { ALL_CHARACTER_IDS } from '../../src/shared/character.js';
 const ids = [...ALL_CHARACTER_IDS];
 
 describe('stateStore', () => {
-  it('initializes all characters as off with empty queue', () => {
+  it('initializes all characters as idle (at their desks) with empty queue', () => {
     const s = createStateStore(ids);
     for (const id of ids) {
-      expect(s.get(id).status).toBe('off');
+      expect(s.get(id).status).toBe('idle');
       expect(s.get(id).queue).toEqual([]);
     }
+  });
+
+  it('session.stop resets to idle (character stays at desk, not off)', () => {
+    const s = createStateStore(ids);
+    s.applyEvent('kim-team-lead', { type: 'agent.start', ts: 1, sessionId: 's', agentType: 'Plan', agentId: 'a1' });
+    s.applyEvent('kim-team-lead', { type: 'session.stop', ts: 2, sessionId: 's' });
+    const st = s.get('kim-team-lead');
+    expect(st.status).toBe('idle');
+    expect(st.queue).toEqual([]);
+    expect(st.currentActivity).toBeUndefined();
   });
 
   it('agent.start → status=working, adds active ticket', () => {

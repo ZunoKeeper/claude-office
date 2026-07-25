@@ -4,7 +4,7 @@ import type { DomainEvent } from '../shared/events.js';
 
 function initial(id: CharacterId): CharacterState {
   return {
-    id, status: 'off', queue: [],
+    id, status: 'idle', queue: [],
     stats: { tasksCompleted: 0, toolCallsTotal: 0, errorsCount: 0 },
   };
 }
@@ -79,10 +79,14 @@ export function createStateStore(ids: CharacterId[]): StateStore {
         break;
       }
       case 'session.start':
-        if (s.status === 'off') s.status = 'idle';
+        // 로스터는 항상 자리에 있음 — session.start는 상태 리셋 트리거일 뿐
+        s.status = 'idle';
+        s.queue = [];
+        s.currentActivity = undefined;
         break;
       case 'session.stop':
-        s.status = 'off';
+        // 세션 종료 후에도 캐릭터는 자리에 있음 (idle). 활동 상태만 리셋.
+        s.status = 'idle';
         s.queue = [];
         s.currentActivity = undefined;
         break;

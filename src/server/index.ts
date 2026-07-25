@@ -58,7 +58,7 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
   registerHookReceiver(app, { router, store, dialogues, ws });
   registerReplayer(app, { store, router });
 
-  if (process.env.CM_TAIL_LOGS === '1') {
+  if (process.env.CM_TAIL_LOGS !== '0') {
     const tailer = createLogTailer(path.join(homedir(), '.claude'), (sid, raw) => {
       const obj = raw as {
         type?: string;

@@ -35,7 +35,7 @@ Claude Code 서브에이전트를 "중소기업 외주 개발팀" 캐릭터로 �
 - `PORT` (기본 4000)
 - `HOST` (기본 0.0.0.0)
 - `LOG_LEVEL` (기본 info)
-- `CM_TAIL_LOGS=1` — 서버 기동 시 자동으로 `~/.claude/projects` JSONL tail 시작
+- `CM_TAIL_LOGS` (기본 활성) — `~/.claude/projects` JSONL 자동 tail. `CM_TAIL_LOGS=0`으로 비활성화
 
 ## 테스트
 
