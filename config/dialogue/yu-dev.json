@@ -1,0 +1,7 @@
+[
+  { "characterId": "yu-dev", "trigger": { "eventType": "tool.pre", "toolName": "Write" }, "templates": ["{fileName} 손볼게요"] },
+  { "characterId": "yu-dev", "trigger": { "eventType": "tool.pre", "toolName": "Edit" }, "templates": ["{fileName} 수정 중"] },
+  { "characterId": "yu-dev", "trigger": { "eventType": "tool.post", "conditions": { "errorRecent": true } }, "templates": ["흠, 컴파일러가 뭐라는데"] },
+  { "characterId": "yu-dev", "trigger": { "eventType": "tool.post" }, "templates": ["됐네", "OK"] },
+  { "characterId": "yu-dev", "trigger": { "eventType": "agent.start" }, "templates": ["코딩 시작"] }
+]

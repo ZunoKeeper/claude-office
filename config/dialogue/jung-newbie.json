@@ -1,0 +1,5 @@
+[
+  { "characterId": "jung-newbie", "trigger": { "eventType": "agent.start" }, "templates": ["넵! 저 다녀올게요!", "어디부터 볼까요?"] },
+  { "characterId": "jung-newbie", "trigger": { "eventType": "agent.stop" }, "templates": ["끝났습니다!"] },
+  { "characterId": "jung-newbie", "trigger": { "eventType": "tool.pre" }, "templates": ["넵넵!"] }
+]

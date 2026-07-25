@@ -1,0 +1,5 @@
+[
+  { "characterId": "choi-office", "trigger": { "eventType": "tool.pre" }, "templates": ["설정 정리 좀 할게요"] },
+  { "characterId": "choi-office", "trigger": { "eventType": "tool.post" }, "templates": ["파일 정돈 완료"] },
+  { "characterId": "choi-office", "trigger": { "eventType": "agent.start" }, "templates": ["뭘 정리해드릴까요?"] }
+]
