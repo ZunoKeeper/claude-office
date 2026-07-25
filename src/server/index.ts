@@ -11,6 +11,7 @@ import { createRouter } from './characterRouter.js';
 import { createStateStore } from './stateStore.js';
 import { registerHookReceiver } from './hookReceiver.js';
 import { registerWsHub } from './wsHub.js';
+import { registerReplayer } from './replayer.js';
 import { createLogTailer } from './logTailer.js';
 import { normalizeHook } from './eventNormalizer.js';
 import { ALL_CHARACTER_IDS } from '../shared/character.js';
@@ -42,6 +43,7 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
   app.get('/config/characters', async () => characters);
   const ws = registerWsHub(app, { store });
   registerHookReceiver(app, { router, store, dialogues, ws });
+  registerReplayer(app, { store, router });
 
   if (process.env.CM_TAIL_LOGS === '1') {
     const tailer = createLogTailer(path.join(homedir(), '.claude'), (sid, raw) => {
