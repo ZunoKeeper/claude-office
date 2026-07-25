@@ -601,8 +601,12 @@ html, body {
   transition: width 500ms linear;
 }
 
-/* Event ticker — retro news bar */
+/* Event ticker — retro news bar, always pinned to browser bottom */
 .event-ticker {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   background: var(--ink);
   color: var(--gold);
   font-family: 'Press Start 2P', monospace;
@@ -610,9 +614,12 @@ html, body {
   padding: 8px 16px;
   border-top: 3px solid var(--wall-2);
   letter-spacing: 1px;
-  flex-shrink: 0;
   box-shadow: 0 -2px 0 rgba(0,0,0,.2);
+  z-index: 50;
 }
+
+/* Reserve space at bottom of scrolling content so it isn't obscured by the ticker */
+.app-main { padding-bottom: 40px; }
 
 .event-ticker::before {
   content: '► ';
