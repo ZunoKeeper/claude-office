@@ -1,5 +1,6 @@
 import { Container, Graphics, Sprite, Text } from 'pixi.js';
 import type { CharacterId, CharacterStatus } from '../../shared/character.js';
+import type { SeatPose } from '../../shared/config.js';
 import { bob } from './animations.js';
 import { buildAtlas, type CharacterAtlas } from './sprites/atlas.js';
 import { buildEmoteTextures, type EmoteId } from './sprites/emotes.js';
@@ -24,11 +25,17 @@ interface Tween {
   resolve: () => void;
 }
 
-function deriveAnimStateAndEmote(status: CharacterStatus): { anim: AnimState; emote: EmoteId | null; timedEmote: boolean } {
+function poseToAnim(pose: SeatPose): AnimState {
+  return pose === 'sit' ? 'sitting' : pose === 'type' ? 'typing' : 'idle';
+}
+
+function deriveAnimStateAndEmote(status: CharacterStatus, seatPose: SeatPose): { anim: AnimState; emote: EmoteId | null; timedEmote: boolean } {
   switch (status) {
     case 'off':
     case 'idle':
-      return { anim: 'idle', emote: null, timedEmote: false };
+      // Fall through to the seat's resting pose so a character parked at
+      // a desk sits/types instead of standing rigidly next to it.
+      return { anim: poseToAnim(seatPose), emote: null, timedEmote: false };
     case 'working':
       return { anim: 'typing', emote: null, timedEmote: false };
     case 'thinking':
@@ -61,6 +68,7 @@ export class CharacterSprite extends Container {
   private status: CharacterStatus = 'idle';
   private animState: AnimState = 'idle';
   private direction: Direction = 'S';
+  private seatPose: SeatPose = 'stand';
 
   private currentEmote: EmoteId | null = null;
   private emoteExpiresAt: number | null = null;
@@ -135,6 +143,18 @@ export class CharacterSprite extends Container {
     if (!this.tweenTo) this.updateTexture();
   }
 
+  setSeatPose(pose: SeatPose): void {
+    if (this.seatPose === pose) return;
+    this.seatPose = pose;
+    if (this.tweenTo) return;
+    // If status is idle-like, resting anim just changed. Re-derive.
+    if (this.status === 'idle' || this.status === 'off') {
+      const { anim } = deriveAnimStateAndEmote(this.status, this.seatPose);
+      this.animState = anim;
+      this.updateTexture();
+    }
+  }
+
   showLine(text: string, ttlMs: number): void {
     const trimmed = text.length > 120 ? text.slice(0, 118) + '…' : text;
     this.bubbleText.style.wordWrapWidth = 200;
@@ -183,7 +203,7 @@ export class CharacterSprite extends Container {
     // Consequence: a status change to 'error' mid-walk is not shown until the
     // character arrives — intentional so the walk cycle isn't interrupted.
     if (!this.tweenTo) {
-      const { anim, emote, timedEmote } = deriveAnimStateAndEmote(next);
+      const { anim, emote, timedEmote } = deriveAnimStateAndEmote(next, this.seatPose);
       this.animState = anim;
       if (emote) this.setEmote(emote, timedEmote ? DONE_EMOTE_MS : null);
       else this.clearEmote();
@@ -278,7 +298,7 @@ export class CharacterSprite extends Container {
         this.tweenTo = undefined;
         done();
         // Return to derived state from current status
-        const { anim, emote, timedEmote } = deriveAnimStateAndEmote(this.status);
+        const { anim, emote, timedEmote } = deriveAnimStateAndEmote(this.status, this.seatPose);
         this.animState = anim;
         this.frame = 0;
         this.frameElapsedMs = 0;

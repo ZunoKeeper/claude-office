@@ -76,6 +76,9 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
       if (body.seatDirection && ['N', 'S', 'E', 'W'].includes(body.seatDirection)) {
         patch.seatDirection = body.seatDirection;
       }
+      if (body.seatPose && ['stand', 'sit', 'type'].includes(body.seatPose)) {
+        patch.seatPose = body.seatPose;
+      }
       overrides[id] = { ...(overrides[id] ?? {}), ...patch };
       characters = applyOverrides(baseCharacters, overrides);
       const target = await saveOverrides(overrides);

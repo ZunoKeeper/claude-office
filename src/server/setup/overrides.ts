@@ -12,7 +12,7 @@ const OVERRIDES_FILE = path.join(OVERRIDES_DIR, 'overrides.json');
  *  config so they're not editable here. Seat + direction go here (rather
  *  than characters.json) because they're per-user layout, not a code-level
  *  behavior change. */
-export type OverridableField = 'name' | 'officeSeat' | 'seatDirection';
+export type OverridableField = 'name' | 'officeSeat' | 'seatDirection' | 'seatPose';
 export type CharacterOverrides = Partial<Pick<CharacterConfig, OverridableField>>;
 export type OverrideMap = Partial<Record<CharacterId, CharacterOverrides>>;
 

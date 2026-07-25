@@ -40,6 +40,7 @@ export class OfficeScene {
   private destroyed = false;
   private editMode = false;
   private dragging: { sprite: CharacterSprite; offsetX: number; offsetY: number } | null = null;
+  private onSelectCallback: ((id: CharacterId | null) => void) | null = null;
   private sprites = new Map<CharacterId, CharacterSprite>();
   private seats = new Map<CharacterId, { x: number; y: number }>();
   private lastActivity = new Map<CharacterId, string | undefined>();
@@ -117,27 +118,30 @@ export class OfficeScene {
 
       let sprite = this.sprites.get(s.id);
       const seatDir = cfg.seatDirection ?? 'S';
+      const seatPose = cfg.seatPose ?? 'stand';
       if (!sprite) {
         sprite = new CharacterSprite(s.id, cfg.name);
         sprite.x = seat.x;
         sprite.y = seat.y;
         sprite.worldPos = { x: seat.x, y: seat.y };
         sprite.setDirection(seatDir);
+        sprite.setSeatPose(seatPose);
         this.attachDragHandlers(sprite);
         sprite.eventMode = this.editMode ? 'dynamic' : 'static';
         sprite.cursor = this.editMode ? 'grab' : 'default';
         this.worldLayer.addChild(sprite);
         this.sprites.set(s.id, sprite);
       } else if (!this.lastActivity.get(s.id)) {
-        // Config hot-reload: seat / direction may have moved. Snap idle
-        // sprites so edits to characters.json show up immediately. Sprites
-        // mid-tool-walk keep their current tween.
+        // Config hot-reload: seat / direction / pose may have moved. Snap
+        // idle sprites so edits show up immediately. Sprites mid-tool-walk
+        // keep their current tween.
         if (sprite.x !== seat.x || sprite.y !== seat.y) {
           sprite.x = seat.x;
           sprite.y = seat.y;
           sprite.worldPos = { x: seat.x, y: seat.y };
         }
         sprite.setDirection(seatDir);
+        sprite.setSeatPose(seatPose);
       }
       sprite.setStatus(s.status);
 
@@ -174,10 +178,17 @@ export class OfficeScene {
       s.eventMode = enable ? 'dynamic' : 'static';
       s.cursor = enable ? 'grab' : 'default';
     }
-    if (!enable && this.dragging) {
-      this.dragging.sprite.cursor = 'default';
-      this.dragging = null;
+    if (!enable) {
+      if (this.dragging) {
+        this.dragging.sprite.cursor = 'default';
+        this.dragging = null;
+      }
+      this.onSelectCallback?.(null);
     }
+  }
+
+  onSelectionChange(cb: (id: CharacterId | null) => void): void {
+    this.onSelectCallback = cb;
   }
 
   private attachDragHandlers(sprite: CharacterSprite): void {
@@ -210,6 +221,9 @@ export class OfficeScene {
       const droppedY = Math.round(sprite.y);
       sprite.cursor = 'grab';
       this.dragging = null;
+      // Selecting after drop lets the React panel show direction / pose
+      // controls right at the character's new home.
+      this.onSelectCallback?.(sprite.characterId);
       void fetch(`/config/characters/${sprite.characterId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
