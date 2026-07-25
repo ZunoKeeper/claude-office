@@ -1,23 +1,24 @@
 import type { CharacterId } from '../../shared/character.js';
-import { CHARACTERS } from './pixelData.js';
+import { composeSprite } from '../pixi/sprites/compose.js';
+import type { PoseKey } from '../pixi/sprites/types.js';
 
 interface Props {
   id: CharacterId;
   size?: number;
+  pose?: PoseKey;
 }
 
-export function PixelAvatar({ id, size = 48 }: Props) {
-  const spec = CHARACTERS[id];
-  if (!spec) return null;
-  const height = spec.pixels.length;
-  const width = spec.pixels[0]?.length ?? 0;
+export function PixelAvatar({ id, size = 48, pose = 'stand-S' }: Props) {
+  const { matrix, palette, width, height } = composeSprite(id, pose);
   const rects: JSX.Element[] = [];
   for (let y = 0; y < height; y++) {
-    const row = spec.pixels[y];
+    const row = matrix[y];
+    if (!row) continue;
     for (let x = 0; x < row.length; x++) {
       const ch = row[x];
-      const color = spec.palette[ch];
-      if (!color || color === 'transparent') continue;
+      if (!ch || ch === '.') continue;
+      const color = palette[ch];
+      if (!color) continue;
       rects.push(<rect key={`${y}-${x}`} x={x} y={y} width={1} height={1} fill={color} />);
     }
   }
