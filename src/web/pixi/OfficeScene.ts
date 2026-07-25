@@ -2,14 +2,13 @@ import { Application, Assets, Container, Sprite } from 'pixi.js';
 import type { CharacterId, CharacterState } from '../../shared/character.js';
 import type { CharacterConfig } from '../../shared/config.js';
 import { CharacterSprite } from './CharacterSprite.js';
-import { depthKey, screenToWorld, worldToScreen } from './isometric.js';
 
 /**
  * Game-dev studio office. The interior is a pre-rendered background image
- * (public/office-bg.png) — characters are the only interactive layer. World
- * coordinates continue to use the flat plane the config uses (officeSeat.x/y),
- * projected 2:1 via `worldToScreen()` so movement between rooms still reads
- * as isometric walking.
+ * (public/office-bg.png). Since the visuals are baked into the PNG, seat
+ * coordinates are interpreted directly in screen (canvas) space so each
+ * character lands on a specific chair in the drawn scene. Depth sort keys
+ * on the sprite's screen y so anyone standing further south renders on top.
  */
 
 const CANVAS_W = 1024;
@@ -18,12 +17,17 @@ const BG_URL = '/office-bg.png';
 
 const Z_KIND_CHARACTER = 3;
 
-/** Tool → world destination the character walks to when the tool fires. */
+/** Tool → screen destination the character walks to when the tool fires. */
 const TOOL_DESTINATIONS: Record<string, { x: number; y: number }> = {
-  Bash: { x: 830, y: 100 },
-  WebFetch: { x: 830, y: 490 },
-  WebSearch: { x: 830, y: 490 },
+  Bash: { x: 940, y: 200 },       // pantry / coffee area (top-right)
+  WebFetch: { x: 940, y: 470 },   // meeting table (right)
+  WebSearch: { x: 940, y: 470 },
 };
+
+function pickDirection(dx: number, dy: number): 'N' | 'S' | 'E' | 'W' {
+  if (Math.abs(dx) > Math.abs(dy)) return dx > 0 ? 'E' : 'W';
+  return dy > 0 ? 'S' : 'N';
+}
 
 export class OfficeScene {
   private app: Application;
@@ -68,9 +72,9 @@ export class OfficeScene {
       const dt = ticker.deltaMS;
       for (const s of this.sprites.values()) {
         s.tick(dt);
-        const wp = screenToWorld(s.x, s.y);
-        s.worldPos = wp;
-        s.zIndex = depthKey(wp.x, wp.y) * 10 + Z_KIND_CHARACTER;
+        // Screen y drives depth — characters further south (larger y)
+        // render on top, matching how the baked isometric art layers.
+        s.zIndex = Math.round(s.y) * 10 + Z_KIND_CHARACTER;
       }
     });
     this.ready = true;
@@ -110,9 +114,8 @@ export class OfficeScene {
       let sprite = this.sprites.get(s.id);
       if (!sprite) {
         sprite = new CharacterSprite(s.id, cfg.name);
-        const seatScreen = worldToScreen(seat.x, seat.y);
-        sprite.x = seatScreen.x;
-        sprite.y = seatScreen.y;
+        sprite.x = seat.x;
+        sprite.y = seat.y;
         sprite.worldPos = { x: seat.x, y: seat.y };
         this.worldLayer.addChild(sprite);
         this.sprites.set(s.id, sprite);
@@ -136,25 +139,18 @@ export class OfficeScene {
         this.lastActivity.set(s.id, currTool);
         const dest = currTool ? TOOL_DESTINATIONS[currTool] : null;
         if (dest) {
-          this.moveSpriteWorld(sprite, dest.x, dest.y, 900);
+          this.moveSpriteScreen(sprite, dest.x, dest.y, 900);
         } else {
-          this.moveSpriteWorld(sprite, seat.x, seat.y, 600);
+          this.moveSpriteScreen(sprite, seat.x, seat.y, 600);
         }
       }
     }
   }
 
-  private moveSpriteWorld(sprite: CharacterSprite, worldX: number, worldY: number, durationMs: number): void {
-    const cur = sprite.worldPos ?? { x: worldX, y: worldY };
-    const dx = worldX - cur.x;
-    const dy = worldY - cur.y;
-    let dir: 'N' | 'S' | 'E' | 'W' = 'S';
-    if (Math.abs(dx) > Math.abs(dy)) dir = dx > 0 ? 'E' : 'W';
-    else dir = dy > 0 ? 'S' : 'N';
-
-    sprite.worldPos = { x: worldX, y: worldY };
-    const dest = worldToScreen(worldX, worldY);
-    void sprite.moveTo(dest.x, dest.y, durationMs, dir);
+  private moveSpriteScreen(sprite: CharacterSprite, screenX: number, screenY: number, durationMs: number): void {
+    const dir = pickDirection(screenX - sprite.x, screenY - sprite.y);
+    sprite.worldPos = { x: screenX, y: screenY };
+    void sprite.moveTo(screenX, screenY, durationMs, dir);
   }
 
   private safeDestroyApp(): void {
