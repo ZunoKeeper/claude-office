@@ -2,31 +2,31 @@
   {
     "id": "kim-team-lead", "name": "김대리", "role": "Main Session (PM)",
     "description": "Main 세션 담당. 사용자 요구사항 접수와 조율, 매칭되지 않은 툴 호출의 폴백.",
-    "officeSeat": { "x": 540, "y": 260 }, "spriteSheet": "characters/kim.json"
+    "officeSeat": { "x": 470, "y": 240 }, "spriteSheet": "characters/kim.json"
   },
   {
     "id": "planner-researcher", "name": "박기획", "role": "Planner / Researcher",
     "description": "Plan 서브에이전트, 계획 수립과 코드 탐색(Read/Grep/Glob 다수)에 활성.",
-    "officeSeat": { "x": 240, "y": 300 }, "spriteSheet": "characters/planner.json"
+    "officeSeat": { "x": 285, "y": 400 }, "spriteSheet": "characters/planner.json"
   },
   {
     "id": "tester", "name": "테스터", "role": "Test Runner / Analyst",
     "description": "Bash에서 pytest·jest·vitest·go test·cargo test·mocha 등 테스트 실행 · 결과 분석.",
-    "officeSeat": { "x": 540, "y": 400 }, "spriteSheet": "characters/tester.json"
+    "officeSeat": { "x": 575, "y": 245 }, "spriteSheet": "characters/tester.json"
   },
   {
     "id": "debugger", "name": "디버거", "role": "Log / Error Analyst",
     "description": "로그 파일 읽기 (*.log) 또는 Bash에서 grep·rg·tail·journalctl 등 로그 수집·분석.",
-    "officeSeat": { "x": 320, "y": 420 }, "spriteSheet": "characters/debugger.json"
+    "officeSeat": { "x": 390, "y": 465 }, "spriteSheet": "characters/debugger.json"
   },
   {
     "id": "code-reviewer", "name": "리뷰어", "role": "Code Reviewer",
     "description": "general-purpose 서브에이전트 (SDD 리뷰 워크플로), security-review / review 스킬 실행 시 활성.",
-    "officeSeat": { "x": 830, "y": 550 }, "spriteSheet": "characters/reviewer.json"
+    "officeSeat": { "x": 780, "y": 555 }, "spriteSheet": "characters/reviewer.json"
   },
   {
     "id": "docs-manager", "name": "문서담당", "role": "Docs Manager",
     "description": "Markdown 문서(.md .mdx) Write/Edit 시 활성. README, spec, plan 등 문서 갱신.",
-    "officeSeat": { "x": 770, "y": 380 }, "spriteSheet": "characters/docs.json"
+    "officeSeat": { "x": 925, "y": 450 }, "spriteSheet": "characters/docs.json"
   }
 ]
