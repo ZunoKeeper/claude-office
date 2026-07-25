@@ -1,7 +1,9 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import websocket from '@fastify/websocket';
+import staticPlugin from '@fastify/static';
 import pino from 'pino';
 import path from 'node:path';
+import { existsSync } from 'node:fs';
 import { loadConfig } from './config/loadConfig.js';
 import { loadDialogues } from './dialogue/pool.js';
 import { createRouter } from './characterRouter.js';
@@ -26,6 +28,11 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
   const dialogues = await loadDialogues(path.join(configDir, 'dialogue'));
   const router = createRouter(rules);
   const store = createStateStore([...ALL_CHARACTER_IDS]);
+
+  const webDist = path.resolve(process.cwd(), 'dist/web');
+  if (existsSync(webDist)) {
+    await app.register(staticPlugin, { root: webDist, prefix: '/' });
+  }
 
   app.get('/health', async () => ({ ok: true }));
   registerHookReceiver(app, { router, store, dialogues });
