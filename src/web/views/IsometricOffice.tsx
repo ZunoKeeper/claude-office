@@ -26,7 +26,7 @@ export function IsometricOffice({ configs }: { configs: CharacterConfig[] }) {
   }, [characters, configs]);
 
   return (
-    <div style={{ position: 'relative', width: 1024, margin: '0 auto' }}>
+    <div style={{ position: 'relative', width: 920, margin: '0 auto' }}>
       <canvas ref={canvasRef} style={{ display: 'block' }} />
       <OfficeOverlay configs={configs} />
     </div>

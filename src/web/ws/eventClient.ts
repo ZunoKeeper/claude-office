@@ -18,6 +18,7 @@ export function connectWs(url: string, store: () => Store): { close: () => void 
         case 'snapshot': store().applySnapshot(msg.characters); break;
         case 'characterUpdated': store().upsert(msg.state); break;
         case 'event': store().pushEvent(msg.event); break;
+        case 'configUpdated': store().bumpConfigVersion(); break;
         default: break;
       }
     };

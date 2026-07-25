@@ -5,6 +5,7 @@ import pino, { type LoggerOptions } from 'pino';
 import path from 'node:path';
 import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
+import chokidar from 'chokidar';
 import { loadConfig } from './config/loadConfig.js';
 import { loadDialogues } from './dialogue/pool.js';
 import { createRouter } from './characterRouter.js';
@@ -17,6 +18,7 @@ import { createTranscriptProcessor } from './transcriptToEvents.js';
 import { installHooks } from './setup/installHooks.js';
 import { loadOverrides, saveOverrides, applyOverrides, type CharacterOverrides, overridesPath } from './setup/overrides.js';
 import { ALL_CHARACTER_IDS, type CharacterId } from '../shared/character.js';
+import type { DomainEvent } from '../shared/events.js';
 
 const loggerOptions: LoggerOptions = {
   transport: process.env.NODE_ENV === 'production' ? undefined : { target: 'pino-pretty' },
@@ -31,11 +33,17 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
   await app.register(websocket);
 
   const configDir = opts.configDir ?? path.resolve(process.cwd(), 'config');
-  const { characters: baseCharacters, rules } = await loadConfig(configDir);
+  let { characters: baseCharacters, rules } = await loadConfig(configDir);
   const overrides = await loadOverrides();
   let characters = applyOverrides(baseCharacters, overrides);
   const dialogues = await loadDialogues(path.join(configDir, 'dialogue'));
-  const router = createRouter(rules);
+  // Router is wrapped in a stable object so `characterRouter.route` calls
+  // dispatch to whichever inner router is current — lets us hot-swap rules
+  // without re-registering hook/replayer handlers.
+  let innerRouter = createRouter(rules);
+  const router = {
+    route: (event: DomainEvent): CharacterId => innerRouter.route(event),
+  };
   const store = createStateStore([...ALL_CHARACTER_IDS]);
 
   const webDist = path.resolve(process.cwd(), 'dist/web');
@@ -84,6 +92,28 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
   const ws = registerWsHub(app, { store });
   registerHookReceiver(app, { router, store, dialogues, ws });
   registerReplayer(app, { store, router });
+
+  // Hot-reload config JSONs so seat/rule edits take effect without a full
+  // server restart. On any change we re-read, swap the router internals, and
+  // notify clients so they re-fetch /config/characters.
+  const configWatcher = chokidar.watch(
+    [path.join(configDir, 'characters.json'), path.join(configDir, 'activityRules.json')],
+    { ignoreInitial: true, awaitWriteFinish: { stabilityThreshold: 120, pollInterval: 40 } },
+  );
+  configWatcher.on('change', async () => {
+    try {
+      const reloaded = await loadConfig(configDir);
+      baseCharacters = reloaded.characters;
+      rules = reloaded.rules;
+      characters = applyOverrides(baseCharacters, overrides);
+      innerRouter = createRouter(rules);
+      ws?.broadcast({ kind: 'configUpdated' });
+      app.log.info('config hot-reloaded');
+    } catch (err) {
+      app.log.warn({ err }, 'config reload failed — keeping previous config');
+    }
+  });
+  app.addHook('onClose', async () => { await configWatcher.close(); });
 
   if (process.env.CM_TAIL_LOGS !== '0') {
     const processors = new Map<string, ReturnType<typeof createTranscriptProcessor>>();

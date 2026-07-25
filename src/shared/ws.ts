@@ -13,4 +13,5 @@ export type WsMessage =
   | { kind: 'snapshot'; characters: CharacterState[]; sessions: SessionSummary[] }
   | { kind: 'characterUpdated'; state: CharacterState }
   | { kind: 'sessionUpdated'; session: SessionSummary }
-  | { kind: 'event'; event: DomainEvent };
+  | { kind: 'event'; event: DomainEvent }
+  | { kind: 'configUpdated' };

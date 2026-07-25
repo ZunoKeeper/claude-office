@@ -11,17 +11,20 @@ import { CharacterSprite } from './CharacterSprite.js';
  * on the sprite's screen y so anyone standing further south renders on top.
  */
 
-const CANVAS_W = 1024;
-const CANVAS_H = 640;
+// Canvas matches the source image aspect (1408×780 ≈ 1.805). Using 920×510
+// keeps that ratio (~1.804) and shrinks the OFFICE view compared to the old
+// 1024×640 stage so the surrounding page can breathe.
+const CANVAS_W = 920;
+const CANVAS_H = 510;
 const BG_URL = '/office-bg.png';
 
 const Z_KIND_CHARACTER = 3;
 
 /** Tool → screen destination the character walks to when the tool fires. */
 const TOOL_DESTINATIONS: Record<string, { x: number; y: number }> = {
-  Bash: { x: 940, y: 200 },       // pantry / coffee area (top-right)
-  WebFetch: { x: 940, y: 470 },   // meeting table (right)
-  WebSearch: { x: 940, y: 470 },
+  Bash: { x: 830, y: 160 },      // pantry / coffee area (top-right)
+  WebFetch: { x: 833, y: 363 },  // meeting table area (right)
+  WebSearch: { x: 833, y: 363 },
 };
 
 function pickDirection(dx: number, dy: number): 'N' | 'S' | 'E' | 'W' {
@@ -88,7 +91,6 @@ export class OfficeScene {
     const tex = await Assets.load(BG_URL);
     if (this.destroyed) return;
     const bg = new Sprite(tex);
-    // Fit to canvas — the source PNG has its own aspect but we squash to fill.
     bg.width = CANVAS_W;
     bg.height = CANVAS_H;
     bg.zIndex = -1000;
@@ -112,13 +114,25 @@ export class OfficeScene {
       if (!seat) continue;
 
       let sprite = this.sprites.get(s.id);
+      const seatDir = cfg.seatDirection ?? 'S';
       if (!sprite) {
         sprite = new CharacterSprite(s.id, cfg.name);
         sprite.x = seat.x;
         sprite.y = seat.y;
         sprite.worldPos = { x: seat.x, y: seat.y };
+        sprite.setDirection(seatDir);
         this.worldLayer.addChild(sprite);
         this.sprites.set(s.id, sprite);
+      } else if (!this.lastActivity.get(s.id)) {
+        // Config hot-reload: seat / direction may have moved. Snap idle
+        // sprites so edits to characters.json show up immediately. Sprites
+        // mid-tool-walk keep their current tween.
+        if (sprite.x !== seat.x || sprite.y !== seat.y) {
+          sprite.x = seat.x;
+          sprite.y = seat.y;
+          sprite.worldPos = { x: seat.x, y: seat.y };
+        }
+        sprite.setDirection(seatDir);
       }
       sprite.setStatus(s.status);
 
@@ -139,18 +153,20 @@ export class OfficeScene {
         this.lastActivity.set(s.id, currTool);
         const dest = currTool ? TOOL_DESTINATIONS[currTool] : null;
         if (dest) {
-          this.moveSpriteScreen(sprite, dest.x, dest.y, 900);
+          void this.moveSpriteScreen(sprite, dest.x, dest.y, 900);
         } else {
-          this.moveSpriteScreen(sprite, seat.x, seat.y, 600);
+          void this.moveSpriteScreen(sprite, seat.x, seat.y, 600).then(() => {
+            sprite?.setDirection(seatDir);
+          });
         }
       }
     }
   }
 
-  private moveSpriteScreen(sprite: CharacterSprite, screenX: number, screenY: number, durationMs: number): void {
+  private moveSpriteScreen(sprite: CharacterSprite, screenX: number, screenY: number, durationMs: number): Promise<void> {
     const dir = pickDirection(screenX - sprite.x, screenY - sprite.y);
     sprite.worldPos = { x: screenX, y: screenY };
-    void sprite.moveTo(screenX, screenY, durationMs, dir);
+    return sprite.moveTo(screenX, screenY, durationMs, dir);
   }
 
   private safeDestroyApp(): void {

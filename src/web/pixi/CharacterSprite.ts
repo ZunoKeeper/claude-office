@@ -4,19 +4,9 @@ import { bob } from './animations.js';
 import { buildAtlas, type CharacterAtlas } from './sprites/atlas.js';
 import { buildEmoteTextures, type EmoteId } from './sprites/emotes.js';
 import type { Direction, PoseKey } from './sprites/types.js';
-import { SPRITE_H, SPRITE_W } from './sprites/types.js';
+import { SPRITE_H } from './sprites/types.js';
 
 const PIXEL_SCALE = 3;
-
-const OUTLINE_BY_STATUS: Record<CharacterStatus, number | null> = {
-  off: null,
-  idle: null,
-  thinking: 0x3b82f6,
-  working: 0x10b981,
-  blocked: 0xf59e0b,
-  error: 0xef4444,
-  done: 0x22c55e,
-};
 
 const WALK_FRAME_MS = 160;
 const TYPE_FRAME_MS = 220;
@@ -58,7 +48,6 @@ export class CharacterSprite extends Container {
 
   private body: Sprite;
   private emoteSprite: Sprite;
-  private statusRing = new Graphics();
   private nameLabel: Text;
 
   // Speech bubble — rounded rect + tail + text. Positioned above the emote.
@@ -95,7 +84,6 @@ export class CharacterSprite extends Container {
     this.body = new Sprite(this.atlas.get(id, 'stand-S'));
     this.body.anchor.set(0.5, 1.0);
     this.body.scale.set(PIXEL_SCALE);
-    this.addChild(this.statusRing);
     this.addChild(this.body);
 
     this.emoteSprite = new Sprite();
@@ -114,8 +102,9 @@ export class CharacterSprite extends Container {
         stroke: { color: 0xfff2c4, width: 2 },
       },
     });
-    this.nameLabel.anchor.set(0.5, 0);
-    this.nameLabel.y = 8;
+    // Name floats just above the head (sprite body top is at y=-SPRITE_H*PIXEL_SCALE).
+    this.nameLabel.anchor.set(0.5, 1);
+    this.nameLabel.y = -SPRITE_H * PIXEL_SCALE - 2;
     this.addChild(this.nameLabel);
 
     this.bubbleText = new Text({
@@ -134,8 +123,12 @@ export class CharacterSprite extends Container {
     this.bubbleContainer.addChild(this.bubbleText);
     this.bubbleContainer.visible = false;
     this.addChild(this.bubbleContainer);
+  }
 
-    this.updateStatusRing();
+  setDirection(dir: Direction): void {
+    if (this.direction === dir) return;
+    this.direction = dir;
+    if (!this.tweenTo) this.updateTexture();
   }
 
   showLine(text: string, ttlMs: number): void {
@@ -193,7 +186,6 @@ export class CharacterSprite extends Container {
     }
 
     this.alpha = next === 'off' ? 0.45 : 1;
-    this.updateStatusRing();
     this.updateTexture();
   }
 
@@ -210,16 +202,6 @@ export class CharacterSprite extends Container {
     this.currentEmote = null;
     this.emoteSprite.visible = false;
     this.emoteExpiresAt = null;
-  }
-
-  private updateStatusRing(): void {
-    const ring = OUTLINE_BY_STATUS[this.status];
-    this.statusRing.clear();
-    if (ring === null) return;
-    const w = SPRITE_W * PIXEL_SCALE;
-    const h = SPRITE_H * PIXEL_SCALE;
-    this.statusRing.rect(-w / 2 - 2, -h, w + 4, h + 4)
-      .stroke({ color: ring, width: 2, alpha: 0.85 });
   }
 
   private currentPose(): PoseKey {

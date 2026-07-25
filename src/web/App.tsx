@@ -13,6 +13,7 @@ import type { CharacterConfig } from '../shared/config.js';
 export function App() {
   const connected = useCharacterStore((s) => s.connected);
   const events = useCharacterStore((s) => s.events);
+  const configVersion = useCharacterStore((s) => s.configVersion);
   const [view, setView] = useState<ViewKind>('grid');
   const [configs, setConfigs] = useState<CharacterConfig[]>([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -21,11 +22,16 @@ export function App() {
   );
 
   useEffect(() => {
-    fetch('/config/characters').then((r) => r.json()).then(setConfigs).catch(() => setConfigs([]));
     const url = `ws://${location.hostname}:${location.port === '5173' ? '4000' : location.port || '4000'}/live`;
     const c = connectWs(url, useCharacterStore.getState);
     return () => c.close();
   }, []);
+
+  // Re-fetch character configs on initial mount and whenever the server
+  // signals a config change (configVersion bumps on WS `configUpdated`).
+  useEffect(() => {
+    fetch('/config/characters').then((r) => r.json()).then(setConfigs).catch(() => setConfigs([]));
+  }, [configVersion]);
 
   function completeOnboarding() {
     localStorage.setItem('cm-onboarding-done', '1');
