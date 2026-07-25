@@ -1,5 +1,6 @@
 import { Container, Graphics, Text } from 'pixi.js';
 import type { CharacterId, CharacterStatus } from '../../shared/character.js';
+import { bob, pulseAlpha } from './animations.js';
 
 const TINT: Record<CharacterId, number> = {
   'kim-team-lead': 0x8b5cf6,
@@ -28,6 +29,8 @@ export class CharacterSprite extends Container {
   private statusDot = new Graphics();
   private nameLabel: Text;
   private extraLabel: Text;
+  private elapsed = 0;
+  private currentStatus: CharacterStatus = 'off';
 
   constructor(private id: CharacterId, name: string) {
     super();
@@ -51,6 +54,7 @@ export class CharacterSprite extends Container {
   }
 
   setStatus(status: CharacterStatus): void {
+    this.currentStatus = status;
     this.body.clear();
     const tint = TINT[this.id];
     const alpha = status === 'off' ? 0.35 : 1;
@@ -63,6 +67,27 @@ export class CharacterSprite extends Container {
     }
     this.statusDot.clear();
     this.statusDot.circle(10, -22, 4).fill(outline ?? 0x9ca3af);
+    // Reset transient body transforms when not animated
+    if (status !== 'idle' && status !== 'working') {
+      this.body.y = 0;
+    }
+    if (status !== 'thinking') {
+      this.body.alpha = 1;
+    }
+  }
+
+  tick(deltaMs: number): void {
+    this.elapsed += deltaMs;
+    if (this.currentStatus === 'idle' || this.currentStatus === 'working') {
+      this.body.y = bob(this.elapsed, this.currentStatus === 'working' ? 3 : 1.5);
+    } else {
+      this.body.y = 0;
+    }
+    if (this.currentStatus === 'thinking') {
+      this.body.alpha = pulseAlpha(this.elapsed);
+    } else if (this.currentStatus !== 'off') {
+      this.body.alpha = 1;
+    }
   }
 
   setLabel(text?: string): void {

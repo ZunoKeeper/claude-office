@@ -19,6 +19,10 @@ export class OfficeScene {
     await this.app.init({ canvas: this.canvas, width: 1024, height: 640, background: '#e5e7d5' });
     this.app.stage.addChild(this.root);
     this.drawBackground();
+    this.app.ticker.add((ticker) => {
+      const dt = ticker.deltaMS;
+      for (const s of this.sprites.values()) s.tick(dt);
+    });
     this.ready = true;
   }
 
