@@ -17,7 +17,9 @@
   "dependencies": {
     "@fastify/static": "^7.0.4",
     "@fastify/websocket": "^10.0.1",
+    "chokidar": "^3.6.0",
     "fastify": "^4.28.1",
+    "ndjson": "^2.0.0",
     "pino": "^9.4.0",
     "pino-pretty": "^11.2.2",
     "pixi.js": "^8.19.0",
@@ -26,6 +28,7 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
+    "@types/ndjson": "^2.0.4",
     "@types/node": "^20.14.15",
     "@types/react": "^18.3.4",
     "@types/react-dom": "^18.3.0",
