@@ -12,9 +12,13 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/hook': 'http://localhost:4000',
-      '/setup': 'http://localhost:4000',
-      '/health': 'http://localhost:4000',
+      // Regex patterns (leading ^) require exact endpoint matches so client
+      // paths like /hooks/useNow.ts don't collide with the /hook endpoint.
+      '^/hook$': 'http://localhost:4000',
+      '^/setup/.*': 'http://localhost:4000',
+      '^/health$': 'http://localhost:4000',
+      '^/config/.*': 'http://localhost:4000',
+      '^/replay/.*': 'http://localhost:4000',
       '/live': { target: 'ws://localhost:4000', ws: true },
     },
   },
