@@ -35,5 +35,6 @@ export interface CharacterState {
   currentActivity?: CharacterActivity;
   queue: Ticket[];
   lastLine?: { text: string; ts: number; ttlMs: number };
+  lastUpdatedAt?: number;
   stats: { tasksCompleted: number; toolCallsTotal: number; errorsCount: number };
 }

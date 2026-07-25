@@ -111,6 +111,15 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
           charId = router.route(evt);
         }
         store.applyEvent(charId, evt);
+
+        // Virtual PL dispatch narration — makes park-planner visibly relay tasks.
+        // Every agent spawn (except when PL itself is the target) triggers a
+        // brief line on park-planner: "누구에게 맡깁시다".
+        if (evt.type === 'agent.start' && charId !== 'park-planner') {
+          const target = characters.find((c) => c.id === charId);
+          const name = target?.name ?? charId;
+          store.setLine('park-planner', `${name}에게 맡깁시다`, 3000);
+        }
       }
     });
     await tailer.start();

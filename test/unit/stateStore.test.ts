@@ -72,4 +72,13 @@ describe('stateStore', () => {
     expect(st.lastLine?.text).toBe('안녕');
     expect(st.lastLine?.ttlMs).toBe(3000);
   });
+
+  it('applyEvent stamps lastUpdatedAt on the affected character', () => {
+    const s = createStateStore(ids);
+    const before = Date.now();
+    s.applyEvent('yu-dev', { type: 'tool.pre', ts: 1, sessionId: 's', agentId: 'a', toolName: 'Write', input: {} });
+    const st = s.get('yu-dev');
+    expect(st.lastUpdatedAt).toBeGreaterThanOrEqual(before);
+    expect(st.lastUpdatedAt).toBeLessThanOrEqual(Date.now());
+  });
 });

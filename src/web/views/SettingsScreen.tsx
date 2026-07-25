@@ -95,7 +95,14 @@ export function SettingsScreen({ configs, onClose, onSaved }: Props) {
           <h2>⚙ TEAM SETUP</h2>
           <button className="settings-close" onClick={onClose}>✕</button>
         </div>
-        <p className="settings-hint">각 팀원의 이름·역할·모델·설명을 편집. 저장 시 <code>~/.claude-office/overrides.json</code>에 지속됨.</p>
+        <p className="settings-hint">
+          각 팀원의 이름·역할·모델·설명을 편집. 저장 시 <code>~/.claude-office/overrides.json</code>에 지속됨.
+        </p>
+        <p className="settings-warn">
+          ⚠ 모델 값은 <b>디스플레이 전용</b>. 실제 서브에이전트가 사용하는 모델은 Claude Code 세션에서
+          <code>claude --model &lt;name&gt;</code> 또는 Agent 툴 호출의 <code>model</code> 파라미터로 결정됨.
+          이 화면은 팀 구성 문서화 용도.
+        </p>
 
         <div className="settings-list">
           {configs.map((cfg) => {

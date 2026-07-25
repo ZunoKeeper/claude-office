@@ -225,26 +225,26 @@ html, body {
 
 /* Grid dashboard — office floor */
 .grid-office {
-  padding: 24px;
+  padding: 16px;
   display: grid;
-  gap: 20px;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   max-width: 1400px;
   margin: 0 auto;
 }
 
-/* Character card — chunky desk */
+/* Character card — chunky desk (compact) */
 .desk {
   background: var(--paper);
-  border: 3px solid var(--ink);
-  padding: 14px;
-  box-shadow: var(--shadow);
+  border: 2px solid var(--ink);
+  padding: 8px;
+  box-shadow: 3px 3px 0 var(--ink);
   position: relative;
-  min-height: 220px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
   transition: transform 120ms;
+  font-size: 12px;
 }
 
 .desk:hover {
@@ -283,14 +283,14 @@ html, body {
 
 /* Avatar frame — desk cubicle wall + floor for the sprite to stand in */
 .avatar-frame {
-  width: 60px;
-  height: 76px;
+  width: 44px;
+  height: 56px;
   position: relative;
   flex-shrink: 0;
   background:
     linear-gradient(180deg, var(--floor-1) 0%, var(--floor-1) 66%, var(--floor-2) 66%, var(--floor-3) 100%);
   border: 2px solid var(--ink);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 1px 1px 0 var(--ink);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -337,32 +337,52 @@ html, body {
 
 .desk-title .name {
   font-weight: bold;
-  font-size: 16px;
+  font-size: 13px;
   color: var(--ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 1.1;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Live pulse dot next to name — flashes when card updated <1.5s ago */
+.live-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--st-working);
+  border: 1px solid var(--ink);
+  display: inline-block;
+  animation: live-pulse 0.8s ease-out;
+  box-shadow: 0 0 4px var(--st-working);
+}
+
+@keyframes live-pulse {
+  0% { transform: scale(1.6); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.9; }
 }
 
 .desk-title .role {
   font-family: 'Press Start 2P', monospace;
-  font-size: 9px;
+  font-size: 8px;
   color: var(--wall);
-  letter-spacing: 0.5px;
-  margin-top: 3px;
+  letter-spacing: 0.3px;
+  margin-top: 2px;
 }
 
 /* Model badge — small chip under role */
 .model-badge {
   display: inline-block;
-  margin-top: 4px;
+  margin-top: 3px;
   font-family: 'Press Start 2P', monospace;
-  font-size: 8px;
-  padding: 3px 6px;
+  font-size: 7px;
+  padding: 2px 4px;
   background: var(--sky);
   color: var(--ink);
-  border: 2px solid var(--ink);
-  letter-spacing: 1px;
+  border: 1px solid var(--ink);
+  letter-spacing: 0.5px;
   text-transform: uppercase;
   align-self: flex-start;
   box-shadow: 1px 1px 0 var(--ink);
@@ -409,13 +429,13 @@ html, body {
 /* Status badge */
 .badge {
   font-family: 'Press Start 2P', monospace;
-  font-size: 9px;
-  padding: 6px 8px;
+  font-size: 8px;
+  padding: 4px 6px;
   color: white;
   text-shadow: 1px 1px 0 rgba(0,0,0,.5);
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   border: 2px solid var(--ink);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 1px 1px 0 var(--ink);
   flex-shrink: 0;
   white-space: nowrap;
 }
@@ -436,15 +456,14 @@ html, body {
 /* Current activity chip */
 .activity {
   font-family: 'DotGothic16', monospace;
-  font-size: 12px;
+  font-size: 11px;
   background: var(--floor-2);
   color: var(--ink);
-  border: 2px solid var(--ink);
-  padding: 5px 8px;
+  border: 1px solid var(--ink);
+  padding: 3px 6px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  box-shadow: var(--shadow-sm);
 }
 
 .activity::before {
@@ -453,40 +472,40 @@ html, body {
   font-weight: bold;
 }
 
-/* Speech bubble — RPG dialog */
+/* Speech bubble — RPG dialog (compact) */
 .bubble {
   position: relative;
   background: white;
-  border: 3px solid var(--ink);
-  padding: 8px 12px;
-  font-size: 13px;
-  line-height: 1.4;
+  border: 2px solid var(--ink);
+  padding: 5px 8px;
+  font-size: 12px;
+  line-height: 1.3;
   color: var(--ink);
   transition: opacity 400ms;
-  min-height: 32px;
-  box-shadow: var(--shadow-sm);
+  min-height: 22px;
+  box-shadow: 1px 1px 0 var(--ink);
 }
 
 .bubble::before {
   content: '';
   position: absolute;
-  top: -10px;
-  left: 20px;
-  width: 12px;
-  height: 12px;
+  top: -7px;
+  left: 12px;
+  width: 8px;
+  height: 8px;
   background: white;
-  border-left: 3px solid var(--ink);
-  border-top: 3px solid var(--ink);
+  border-left: 2px solid var(--ink);
+  border-top: 2px solid var(--ink);
   transform: rotate(45deg);
 }
 
 .bubble::after {
   content: '';
   position: absolute;
-  top: -6px;
-  left: 24px;
-  width: 6px;
-  height: 6px;
+  top: -4px;
+  left: 14px;
+  width: 4px;
+  height: 4px;
   background: white;
   z-index: 1;
 }
@@ -494,18 +513,17 @@ html, body {
 /* Ticket queue */
 .tickets {
   display: flex;
-  gap: 4px;
+  gap: 3px;
   align-items: center;
-  min-height: 22px;
+  min-height: 16px;
 }
 
 .ticket {
-  width: 12px;
-  height: 18px;
-  border: 2px solid var(--ink);
+  width: 8px;
+  height: 12px;
+  border: 1px solid var(--ink);
   position: relative;
   image-rendering: pixelated;
-  box-shadow: 1px 1px 0 var(--ink);
 }
 
 .ticket.active {
@@ -527,25 +545,39 @@ html, body {
   margin-left: 4px;
 }
 
-/* Stats footer — Kairosoft-style icon rows */
+/* Stats footer — compact icon rows */
 .stats {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   font-family: 'Press Start 2P', monospace;
-  font-size: 10px;
+  font-size: 9px;
   color: var(--ink);
-  border-top: 2px dashed var(--floor-3);
-  padding-top: 8px;
+  border-top: 1px dashed var(--floor-3);
+  padding-top: 5px;
   margin-top: auto;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   flex-wrap: wrap;
 }
 
-.stats span::before { margin-right: 3px; font-family: 'DotGothic16', monospace; }
+.stats span::before { margin-right: 2px; font-family: 'DotGothic16', monospace; }
 .stats .stat-queue::before { content: '🎫'; }
 .stats .stat-done::before { content: '★'; color: var(--gold); }
 .stats .stat-err::before { content: '✗'; color: var(--st-error); }
 .stats .stat-calls::before { content: '⚙'; color: var(--wall); }
+.stats .stat-time { margin-left: auto; color: var(--ink-muted); font-size: 8px; }
+.stats .stat-time::before { content: '⏱ '; }
+
+/* Activity elapsed timer */
+.activity-elapsed { color: var(--wall); font-weight: bold; }
+
+/* Speech bubble TTL bar (countdown of remaining lifetime) */
+.bubble-ttl {
+  position: absolute;
+  bottom: 0; left: 0;
+  height: 2px;
+  background: var(--gold);
+  transition: width 500ms linear;
+}
 
 /* Event ticker — retro news bar */
 .event-ticker {
@@ -694,8 +726,21 @@ html, body {
   font-family: 'DotGothic16', monospace;
   font-size: 12px;
   color: var(--ink-muted);
-  margin: 0 0 12px 0;
+  margin: 0 0 8px 0;
 }
+
+.settings-warn {
+  font-family: 'DotGothic16', monospace;
+  font-size: 12px;
+  color: var(--ink);
+  background: var(--floor-2);
+  border: 2px solid var(--st-blocked);
+  padding: 8px 10px;
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+}
+
+.settings-warn b { color: var(--st-error); }
 
 .settings-hint code {
   font-family: 'Press Start 2P', monospace;

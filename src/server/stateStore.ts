@@ -23,6 +23,7 @@ export function createStateStore(ids: CharacterId[]): StateStore {
 
   function emit(id: CharacterId): CharacterState {
     const s = map.get(id)!;
+    s.lastUpdatedAt = Date.now();
     bus.emit('characterUpdated', s);
     return s;
   }
