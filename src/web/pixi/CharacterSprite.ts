@@ -83,6 +83,10 @@ export class CharacterSprite extends Container {
 
   private tweenTo?: Tween;
 
+  /** Populated by the scene when the sprite is anchored to a world position.
+   *  Used for isometric depth sort and world-space direction inference. */
+  worldPos?: { x: number; y: number };
+
   constructor(private id: CharacterId, name: string) {
     super();
     this.atlas = buildAtlas();

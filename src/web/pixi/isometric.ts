@@ -36,14 +36,15 @@ export function worldToScreen(worldX: number, worldY: number, worldZ = 0): IsoPo
   };
 }
 
-/** Four corners of a world-axis-aligned rectangle projected to screen. */
-export function projectRect(x: number, y: number, w: number, h: number): [IsoPoint, IsoPoint, IsoPoint, IsoPoint] {
-  return [
-    worldToScreen(x, y),           // NW (top-left in world)
-    worldToScreen(x + w, y),       // NE
-    worldToScreen(x + w, y + h),   // SE
-    worldToScreen(x, y + h),       // SW
-  ];
+/**
+ * Invert worldToScreen assuming worldZ=0 (character standing on the floor).
+ * Used by the ticker so the depth sort tracks the sprite's current screen
+ * position throughout a walking tween, not just its destination.
+ */
+export function screenToWorld(screenX: number, screenY: number): IsoPoint {
+  const dx = (screenX - ISO_ORIGIN_X) / ISO_SCALE_X; // = wx - wy
+  const dy = (screenY - ISO_ORIGIN_Y) / ISO_SCALE_Y; // = wx + wy
+  return { x: (dx + dy) / 2, y: (dy - dx) / 2 };
 }
 
 /**
