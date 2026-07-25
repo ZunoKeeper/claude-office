@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import path from 'node:path';
 import { loadDialogues, pickLine } from '../../src/server/dialogue/pool.js';
 
@@ -21,12 +21,19 @@ describe('dialoguePool', () => {
 
   it('respects queueDepthGte condition', async () => {
     const pools = await loadDialogues(DIR);
-    const line = pickLine(pools.get('lee-researcher')!, {
-      event: { type: 'agent.start', ts: 0, sessionId: 's', agentType: 'Explore', agentId: 'a' },
-      queueDepth: 3, recentError: false,
-      slots: { queueDepth: 3 },
-    });
-    expect(line).toMatch(/3개 물려있어요/);
+    // Mock Math.random to force selection of the conditional line
+    // (both generic and conditional entries match, we want the conditional one)
+    const spy = vi.spyOn(Math, 'random').mockReturnValue(0.99);
+    try {
+      const line = pickLine(pools.get('lee-researcher')!, {
+        event: { type: 'agent.start', ts: 0, sessionId: 's', agentType: 'Explore', agentId: 'a' },
+        queueDepth: 3, recentError: false,
+        slots: { queueDepth: 3 },
+      });
+      expect(line).toMatch(/3개 물려있어요/);
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   it('fills template slots from context', async () => {

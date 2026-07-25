@@ -44,15 +44,10 @@ function renderTemplate(tpl: string, slots: Record<string, string | number>): st
 export function pickLine(pool: DialogueEntry[], ctx: DialogueContext): string | null {
   const candidates = pool.filter((e) => matches(e, ctx));
   if (candidates.length === 0) return null;
-
-  // Prefer entries with conditions (more specific) over generic ones
-  const withConditions = candidates.filter((e) => e.trigger.conditions);
-  const preferred = withConditions.length > 0 ? withConditions : candidates;
-
-  const totalWeight = preferred.reduce((s, c) => s + (c.weight ?? 1), 0);
+  const totalWeight = candidates.reduce((s, c) => s + (c.weight ?? 1), 0);
   let r = Math.random() * totalWeight;
-  let chosen = preferred[0];
-  for (const c of preferred) {
+  let chosen = candidates[0];
+  for (const c of candidates) {
     r -= c.weight ?? 1;
     if (r <= 0) { chosen = c; break; }
   }
