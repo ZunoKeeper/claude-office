@@ -16,7 +16,7 @@ export function OnboardingScreen({ onComplete }: Props) {
         body: JSON.stringify({ host: `http://${location.hostname}:4000` }),
       });
       const data = await r.json();
-      setStatus(data.ok ? `설치 완료: ${data.target}` : '설치 실패');
+      setStatus(data.ok ? `✔ 설치 완료: ${data.target}` : '✗ 설치 실패');
     } catch (err) {
       setStatus(`오류: ${(err as Error).message}`);
     } finally {
@@ -25,27 +25,26 @@ export function OnboardingScreen({ onComplete }: Props) {
   }
 
   return (
-    <div style={{
-      maxWidth: 560, margin: '80px auto', padding: 24,
-      background: 'white', borderRadius: 8, boxShadow: '0 2px 10px rgba(0,0,0,.06)',
-    }}>
-      <h2>Claude Monitor 초기 설정</h2>
-      <p>이 앱은 Claude Code hooks를 통해 이벤트를 수신합니다.</p>
-      <div style={{ margin: '16px 0' }}>
-        <label style={{ display: 'block', margin: '6px 0' }}>
-          <input type="radio" checked={scope === 'user'} onChange={() => setScope('user')} />
-          {' '}전역 (`~/.claude/settings.json`)
+    <div className="onboarding">
+      <h2>▶ NEW GAME</h2>
+      <p>Claude Code hooks를 설치하면 팀원들이 활동을 시작합니다.</p>
+      <div>
+        <label>
+          <input type="radio" name="scope"
+                 checked={scope === 'user'} onChange={() => setScope('user')} />
+          전역 설치 (~/.claude/settings.json)
         </label>
-        <label style={{ display: 'block', margin: '6px 0' }}>
-          <input type="radio" checked={scope === 'project'} onChange={() => setScope('project')} />
-          {' '}현재 프로젝트 (`.claude/settings.json`)
+        <label>
+          <input type="radio" name="scope"
+                 checked={scope === 'project'} onChange={() => setScope('project')} />
+          현재 프로젝트만 (.claude/settings.json)
         </label>
       </div>
-      <div style={{ display: 'flex', gap: 8 }}>
-        <button onClick={install} disabled={busy}>자동 설치</button>
+      <div className="onboarding-actions">
+        <button onClick={install} disabled={busy}>{busy ? '설치 중...' : '자동 설치'}</button>
         <button onClick={onComplete}>건너뛰기</button>
       </div>
-      {status && <p style={{ marginTop: 12, fontSize: 13 }}>{status}</p>}
+      {status && <div className="onboarding-status">{status}</div>}
     </div>
   );
 }

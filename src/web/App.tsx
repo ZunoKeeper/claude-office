@@ -34,17 +34,13 @@ export function App() {
 
   return (
     <div>
-      <header style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '10px 16px', background: '#1f2937', color: 'white',
-      }}>
-        <h2 style={{ margin: 0, fontSize: 18 }}>Claude Monitor</h2>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+      <header className="app-header">
+        <h2 className="app-title">Claude Office Story</h2>
+        <div className="app-header-right">
           <ViewSwitcher active={view} onChange={setView} />
-          <span style={{
-            fontSize: 12, background: connected ? '#10b981' : '#ef4444',
-            padding: '2px 8px', borderRadius: 8,
-          }}>{connected ? 'connected' : 'disconnected'}</span>
+          <span className={`conn-pill ${connected ? 'on' : ''}`}>
+            {connected ? 'ONLINE' : 'OFFLINE'}
+          </span>
         </div>
       </header>
       <ReplayControls />

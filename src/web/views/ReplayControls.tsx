@@ -27,18 +27,16 @@ export function ReplayControls() {
   async function stop() { await fetch('/replay/stop', { method: 'POST' }); }
 
   return (
-    <div style={{
-      display: 'flex', gap: 8, alignItems: 'center',
-      padding: '6px 12px', background: '#374151', color: 'white', fontSize: 12,
-    }}>
-      <input value={file} onChange={(e) => setFile(e.target.value)} placeholder="/path/to/session.jsonl"
-             style={{ flex: 1, padding: '4px 8px', borderRadius: 4, border: 'none' }} />
-      <label>속도
-        <input type="number" value={speed} min={1} max={200} onChange={(e) => setSpeed(Number(e.target.value))}
-               style={{ width: 60, marginLeft: 4, padding: '2px 4px' }} />
+    <div className="replay-panel">
+      <span>📼 REPLAY</span>
+      <input type="text" value={file} onChange={(e) => setFile(e.target.value)}
+             placeholder="/path/to/session.jsonl" />
+      <label>SPD
+        <input type="number" value={speed} min={1} max={200}
+               onChange={(e) => setSpeed(Number(e.target.value))} />
       </label>
-      <button onClick={start} disabled={!file || status.running}>▶ 재생</button>
-      <button onClick={stop} disabled={!status.running}>■ 정지</button>
+      <button onClick={start} disabled={!file || status.running}>▶ PLAY</button>
+      <button onClick={stop} disabled={!status.running}>■ STOP</button>
       {status.running && <span>{status.index}/{status.total}</span>}
     </div>
   );

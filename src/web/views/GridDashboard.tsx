@@ -15,16 +15,13 @@ const META: Record<CharacterId, { name: string; role: string }> = {
 };
 
 function empty(id: CharacterId): CharacterState {
-  return { id, status: 'off', queue: [], stats: { tasksCompleted: 0, toolCallsTotal: 0, errorsCount: 0 } };
+  return { id, status: 'idle', queue: [], stats: { tasksCompleted: 0, toolCallsTotal: 0, errorsCount: 0 } };
 }
 
 export function GridDashboard() {
   const characters = useCharacterStore((s) => s.characters);
   return (
-    <div style={{
-      display: 'grid', gap: 12,
-      gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', padding: 16,
-    }}>
+    <div className="grid-office">
       {ALL_CHARACTER_IDS.map((id) => (
         <CharacterCard key={id} state={characters[id] ?? empty(id)} {...META[id]} />
       ))}
