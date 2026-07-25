@@ -14,7 +14,7 @@ export function App() {
   const connected = useCharacterStore((s) => s.connected);
   const events = useCharacterStore((s) => s.events);
   const configVersion = useCharacterStore((s) => s.configVersion);
-  const [view, setView] = useState<ViewKind>('grid');
+  const [view, setView] = useState<ViewKind>('office');
   const [configs, setConfigs] = useState<CharacterConfig[]>([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [dismissed, setDismissed] = useState(
