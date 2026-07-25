@@ -82,8 +82,17 @@ export function IsometricOffice({ configs }: { configs: CharacterConfig[] }) {
       {editMode && selected && (
         <EditPanel
           config={selected}
-          onDirection={(dir) => patchCharacter(selected.id, { seatDirection: dir })}
-          onPose={(pose) => patchCharacter(selected.id, { seatPose: pose })}
+          onDirection={(dir) => {
+            // Update the sprite locally before the PATCH round-trip so the
+            // button click feels instant. The eventual configUpdated broadcast
+            // re-applies the same value harmlessly.
+            sceneRef.current?.applyDirection(selected.id, dir);
+            patchCharacter(selected.id, { seatDirection: dir });
+          }}
+          onPose={(pose) => {
+            sceneRef.current?.applySeatPose(selected.id, pose);
+            patchCharacter(selected.id, { seatPose: pose });
+          }}
           onClose={() => setSelectedId(null)}
         />
       )}

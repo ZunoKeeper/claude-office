@@ -191,6 +191,16 @@ export class OfficeScene {
     this.onSelectCallback = cb;
   }
 
+  /** Optimistic update so the browser reflects a direction change immediately;
+   *  the eventual configUpdated round-trip will re-apply the same value. */
+  applyDirection(id: CharacterId, dir: 'N' | 'S' | 'E' | 'W'): void {
+    this.sprites.get(id)?.setDirection(dir);
+  }
+
+  applySeatPose(id: CharacterId, pose: 'stand' | 'sit' | 'type'): void {
+    this.sprites.get(id)?.setSeatPose(pose);
+  }
+
   private attachDragHandlers(sprite: CharacterSprite): void {
     sprite.on('pointerdown', (e: FederatedPointerEvent) => {
       if (!this.editMode) return;
