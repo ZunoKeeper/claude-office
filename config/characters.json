@@ -1,47 +1,32 @@
 [
   {
-    "id": "kim-team-lead", "name": "김대리", "role": "Main Session (Fallback)",
-    "description": "Main 세션 담당. 사용자 프롬프트 접수와 매칭되지 않은 툴 호출을 모두 받는 폴백. 관측 모델은 Main 세션의 실제 모델.",
-    "officeSeat": { "x": 550, "y": 140 }, "spriteSheet": "characters/kim.json"
+    "id": "kim-team-lead", "name": "김대리", "role": "Main Session (PM)",
+    "description": "Main 세션 담당. 사용자 요구사항 접수와 조율, 매칭되지 않은 툴 호출의 폴백.",
+    "officeSeat": { "x": 500, "y": 320 }, "spriteSheet": "characters/kim.json"
   },
   {
-    "id": "park-planner", "name": "박PL", "role": "Plan Agent",
-    "description": "Plan 서브에이전트 spawn 시 활성. 그 외에도 다른 캐릭터에게 dispatch가 일어날 때마다 대사로 알림.",
-    "officeSeat": { "x": 130, "y": 150 }, "spriteSheet": "characters/park.json"
+    "id": "planner-researcher", "name": "박기획", "role": "Planner / Researcher",
+    "description": "Plan 서브에이전트, 계획 수립과 코드 탐색(Read/Grep/Glob 다수)에 활성.",
+    "officeSeat": { "x": 200, "y": 180 }, "spriteSheet": "characters/planner.json"
   },
   {
-    "id": "lee-researcher", "name": "이대리", "role": "Explore Agent",
-    "description": "Explore 서브에이전트 spawn 시 활성.",
-    "officeSeat": { "x": 130, "y": 360 }, "spriteSheet": "characters/lee.json"
+    "id": "tester", "name": "테스터", "role": "Test Runner / Analyst",
+    "description": "Bash에서 pytest·jest·vitest·go test·cargo test·mocha 등 테스트 실행 · 결과 분석.",
+    "officeSeat": { "x": 720, "y": 400 }, "spriteSheet": "characters/tester.json"
   },
   {
-    "id": "yu-dev", "name": "유대리", "role": "Code Write/Edit",
-    "description": "코드 파일(.ts .tsx .js .jsx .py .go .java .rs .c .cpp .h .hpp .rb .php)에 Write/Edit 실행 시 활성.",
-    "officeSeat": { "x": 430, "y": 140 }, "spriteSheet": "characters/yu.json"
+    "id": "debugger", "name": "디버거", "role": "Log / Error Analyst",
+    "description": "로그 파일 읽기 (*.log) 또는 Bash에서 grep·rg·tail·journalctl 등 로그 수집·분석.",
+    "officeSeat": { "x": 200, "y": 460 }, "spriteSheet": "characters/debugger.json"
   },
   {
-    "id": "han-qa", "name": "한주임", "role": "Test Runner",
-    "description": "Bash에서 pytest·jest·vitest·go test·cargo test·mocha 등 테스트 명령 실행 시 활성.",
-    "officeSeat": { "x": 790, "y": 340 }, "spriteSheet": "characters/han.json"
+    "id": "code-reviewer", "name": "리뷰어", "role": "Code Reviewer",
+    "description": "general-purpose 서브에이전트 (SDD 리뷰 워크플로), security-review / review 스킬 실행 시 활성.",
+    "officeSeat": { "x": 720, "y": 240 }, "spriteSheet": "characters/reviewer.json"
   },
   {
-    "id": "seo-designer", "name": "서주임", "role": "UI Write/Edit",
-    "description": "UI 파일(.css .scss .html .vue .svg)에 Write/Edit 또는 figma.com WebFetch 시 활성.",
-    "officeSeat": { "x": 920, "y": 340 }, "spriteSheet": "characters/seo.json"
-  },
-  {
-    "id": "jo-senior", "name": "조과장", "role": "claude-code-guide",
-    "description": "claude-code-guide 서브에이전트 spawn 시 활성.",
-    "officeSeat": { "x": 260, "y": 150 }, "spriteSheet": "characters/jo.json"
-  },
-  {
-    "id": "jung-newbie", "name": "정막내", "role": "general-purpose",
-    "description": "general-purpose 서브에이전트 spawn 시 활성. SDD 워크플로에서 가장 자주 사용됨.",
-    "officeSeat": { "x": 660, "y": 140 }, "spriteSheet": "characters/jung.json"
-  },
-  {
-    "id": "choi-office", "name": "최주임", "role": "Config / Settings",
-    "description": "settings.json 또는 .claude/*.json / *.md 파일에 Write/Edit 시 활성.",
-    "officeSeat": { "x": 500, "y": 550 }, "spriteSheet": "characters/choi.json"
+    "id": "docs-manager", "name": "문서담당", "role": "Docs Manager",
+    "description": "Markdown 문서(.md .mdx) Write/Edit 시 활성. README, spec, plan 등 문서 갱신.",
+    "officeSeat": { "x": 500, "y": 550 }, "spriteSheet": "characters/docs.json"
   }
 ]

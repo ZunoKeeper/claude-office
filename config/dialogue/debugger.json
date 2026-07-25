@@ -1,0 +1,5 @@
+[
+  { "characterId": "debugger", "trigger": { "eventType": "tool.pre" }, "templates": ["로그 살펴볼게요", "패턴 찾는 중..."] },
+  { "characterId": "debugger", "trigger": { "eventType": "tool.post", "conditions": { "errorRecent": true } }, "templates": ["에러 패턴 잡았어요"] },
+  { "characterId": "debugger", "trigger": { "eventType": "tool.post" }, "templates": ["원인 짚었네요", "찾았다"] }
+]

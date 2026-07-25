@@ -6,8 +6,8 @@ import { CharacterSprite } from './CharacterSprite.js';
 /**
  * Office layout — 1024x640 canvas, top-down "isometric-ish" office plan.
  * Rooms are drawn in the flat plan and each character has a fixed desk position.
- * The scene manages: interior background, character sprites, movement to
- * tool destinations, and PL dispatcher walk-over interactions.
+ * The scene manages: interior background, character sprites, and movement
+ * to tool destinations. Only real observed events drive character motion.
  */
 
 interface Room {
@@ -93,12 +93,6 @@ function drawFurniture(g: Graphics) {
   g.rect(300, 220, 24, 10).fill(0x2a1a0a); // meeting↔dev? actually decorative
 }
 
-interface DispatchAnim {
-  targetChar: CharacterId;
-  startedAt: number;
-  phase: 'out' | 'back';
-}
-
 export class OfficeScene {
   private app: Application;
   private root = new Container();
@@ -106,9 +100,7 @@ export class OfficeScene {
   private sprites = new Map<CharacterId, CharacterSprite>();
   private seats = new Map<CharacterId, { x: number; y: number }>();
   private lastActivity = new Map<CharacterId, string | undefined>();
-  private lastLineTs = new Map<CharacterId, number>();
   private pendingSetCharacters: { states: CharacterState[]; configs: CharacterConfig[] } | null = null;
-  private plDispatch: DispatchAnim | null = null;
 
   constructor(private canvas: HTMLCanvasElement) {
     this.app = new Application();
@@ -128,7 +120,6 @@ export class OfficeScene {
     this.app.ticker.add((ticker) => {
       const dt = ticker.deltaMS;
       for (const s of this.sprites.values()) s.tick(dt);
-      this.tickPlDispatch();
     });
     this.ready = true;
     if (this.pendingSetCharacters) {
@@ -211,82 +202,10 @@ export class OfficeScene {
         }
       }
 
-      if (s.id === 'park-planner' && s.lastLine) {
-        const prevTs = this.lastLineTs.get(s.id) ?? 0;
-        if (s.lastLine.ts > prevTs) {
-          this.lastLineTs.set(s.id, s.lastLine.ts);
-          this.startPlDispatch(s.lastLine.text);
-        }
-      }
     }
-  }
-
-  /** When PL emits a dispatch line like "정막내에게 맡깁시다", extract the
-   *  target name → find matching character seat → briefly walk PL there. */
-  private startPlDispatch(line: string): void {
-    const pl = this.sprites.get('park-planner');
-    if (!pl) return;
-    const m = /^(.+?)에게/.exec(line);
-    if (!m) return;
-    const target = this.findCharacterByName(m[1]);
-    if (!target) return;
-    const targetSeat = this.seats.get(target);
-    const home = this.seats.get('park-planner');
-    if (!targetSeat || !home) return;
-    if (this.plDispatch) return;
-    const midX = (home.x + targetSeat.x) / 2;
-    const midY = (home.y + targetSeat.y) / 2;
-    this.plDispatch = { targetChar: target, startedAt: Date.now(), phase: 'out' };
-    void pl.moveTo(midX, midY, 500).then(() => {
-      window.setTimeout(() => {
-        if (!this.plDispatch) return;
-        this.plDispatch.phase = 'back';
-        void pl.moveTo(home.x, home.y, 500).then(() => {
-          this.plDispatch = null;
-        });
-      }, 400);
-    });
-  }
-
-  private tickPlDispatch(): void {
-    if (this.plDispatch && Date.now() - this.plDispatch.startedAt > 3000) {
-      const pl = this.sprites.get('park-planner');
-      const home = this.seats.get('park-planner');
-      if (pl && home) void pl.moveTo(home.x, home.y, 300);
-      this.plDispatch = null;
-    }
-  }
-
-  private findCharacterByName(name: string): CharacterId | null {
-    // Match against cfg names — the caller has cfgMap. But we hold sprites
-    // that were created with cfg.name. Fallback: prefix match on common names.
-    for (const [id, sprite] of this.sprites.entries()) {
-      // Sprite doesn't hold name, so use static lookup via known Korean names
-      const known = KOREAN_NAMES[id];
-      if (known && known === name) return id;
-    }
-    // Trim trailing whitespace/punctuation
-    const cleaned = name.replace(/[\s.,!?]+$/g, '');
-    for (const [id] of Object.entries(KOREAN_NAMES)) {
-      if (KOREAN_NAMES[id as CharacterId] === cleaned) return id as CharacterId;
-    }
-    return null;
   }
 
   destroy(): void {
     this.app.destroy(true);
   }
 }
-
-/** Fallback name lookup for dispatch parsing when config isn't stored on sprites. */
-const KOREAN_NAMES: Record<CharacterId, string> = {
-  'kim-team-lead': '김대리',
-  'park-planner': '박PL',
-  'lee-researcher': '이대리',
-  'yu-dev': '유대리',
-  'han-qa': '한주임',
-  'seo-designer': '서주임',
-  'jo-senior': '조과장',
-  'jung-newbie': '정막내',
-  'choi-office': '최주임',
-};

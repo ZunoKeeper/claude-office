@@ -1,7 +1,0 @@
-[
-  { "characterId": "han-qa", "trigger": { "eventType": "tool.pre", "toolName": "Bash" }, "templates": ["테스트 돌립니다~"] },
-  { "characterId": "han-qa", "trigger": { "eventType": "tool.post", "conditions": { "errorRecent": true } }, "templates": ["어? 여기 하나 깨졌는데요"] },
-  { "characterId": "han-qa", "trigger": { "eventType": "tool.post" }, "templates": ["통과!", "이번엔 깨끗하네요"] },
-  { "characterId": "han-qa", "trigger": { "eventType": "agent.start" }, "templates": ["체크리스트 준비"] },
-  { "characterId": "han-qa", "trigger": { "eventType": "agent.stop" }, "templates": ["검수 완료"] }
-]

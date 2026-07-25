@@ -1,0 +1,6 @@
+[
+  { "characterId": "planner-researcher", "trigger": { "eventType": "agent.start" }, "templates": ["계획부터 세우죠", "구조 먼저 봅시다"] },
+  { "characterId": "planner-researcher", "trigger": { "eventType": "agent.stop" }, "templates": ["계획 완료"] },
+  { "characterId": "planner-researcher", "trigger": { "eventType": "tool.pre", "toolName": "Grep" }, "templates": ["훑어볼게요"] },
+  { "characterId": "planner-researcher", "trigger": { "eventType": "tool.pre", "toolName": "Glob" }, "templates": ["파일 목록 뽑는 중"] }
+]

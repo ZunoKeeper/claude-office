@@ -1,0 +1,4 @@
+[
+  { "characterId": "docs-manager", "trigger": { "eventType": "tool.pre" }, "templates": ["문서 갱신할게요", "{fileName} 정리 중"] },
+  { "characterId": "docs-manager", "trigger": { "eventType": "tool.post" }, "templates": ["업데이트 완료"] }
+]

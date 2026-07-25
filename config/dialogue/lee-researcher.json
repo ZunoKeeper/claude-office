@@ -1,7 +1,0 @@
-[
-  { "characterId": "lee-researcher", "trigger": { "eventType": "agent.start" }, "templates": ["어디 있더라...", "찾아볼게요~"] },
-  { "characterId": "lee-researcher", "trigger": { "eventType": "agent.stop" }, "templates": ["찾았다!", "여깄네요"] },
-  { "characterId": "lee-researcher", "trigger": { "eventType": "tool.pre", "toolName": "Grep" }, "templates": ["이건 {pattern} 로 훑으면..."] },
-  { "characterId": "lee-researcher", "trigger": { "eventType": "agent.start", "conditions": { "queueDepthGte": 2 } }, "templates": ["제가 지금 {queueDepth}개 물려있어요!"] },
-  { "characterId": "lee-researcher", "trigger": { "eventType": "tool.post" }, "templates": ["대충 봤어요"] }
-]

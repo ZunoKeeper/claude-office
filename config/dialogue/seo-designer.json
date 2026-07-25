@@ -1,5 +1,0 @@
-[
-  { "characterId": "seo-designer", "trigger": { "eventType": "tool.pre", "toolName": "Edit" }, "templates": ["여백 살짝 조정할게요"] },
-  { "characterId": "seo-designer", "trigger": { "eventType": "tool.pre", "toolName": "WebFetch" }, "templates": ["시안 확인하고 올게요"] },
-  { "characterId": "seo-designer", "trigger": { "eventType": "tool.post" }, "templates": ["색감 괜찮은데요"] }
-]

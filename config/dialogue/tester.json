@@ -1,0 +1,5 @@
+[
+  { "characterId": "tester", "trigger": { "eventType": "tool.pre" }, "templates": ["테스트 돌립니다~"] },
+  { "characterId": "tester", "trigger": { "eventType": "tool.post", "conditions": { "errorRecent": true } }, "templates": ["어? 여기 하나 깨졌네요"] },
+  { "characterId": "tester", "trigger": { "eventType": "tool.post" }, "templates": ["통과!", "이번엔 깨끗하네요"] }
+]

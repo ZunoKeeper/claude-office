@@ -1,17 +1,18 @@
 export type CharacterId =
   | 'kim-team-lead'
-  | 'park-planner'
-  | 'lee-researcher'
-  | 'yu-dev'
-  | 'han-qa'
-  | 'seo-designer'
-  | 'jo-senior'
-  | 'jung-newbie'
-  | 'choi-office';
+  | 'planner-researcher'
+  | 'tester'
+  | 'debugger'
+  | 'code-reviewer'
+  | 'docs-manager';
 
 export const ALL_CHARACTER_IDS: readonly CharacterId[] = [
-  'kim-team-lead', 'park-planner', 'lee-researcher', 'yu-dev', 'han-qa',
-  'seo-designer', 'jo-senior', 'jung-newbie', 'choi-office',
+  'kim-team-lead',
+  'planner-researcher',
+  'tester',
+  'debugger',
+  'code-reviewer',
+  'docs-manager',
 ];
 
 export type CharacterStatus = 'off' | 'idle' | 'thinking' | 'working' | 'blocked' | 'error' | 'done';

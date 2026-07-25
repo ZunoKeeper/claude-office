@@ -5,9 +5,9 @@ import { loadConfig } from '../../src/server/config/loadConfig.js';
 const CONFIG_DIR = path.resolve(process.cwd(), 'config');
 
 describe('loadConfig', () => {
-  it('loads 9 characters', async () => {
+  it('loads 6 characters', async () => {
     const { characters } = await loadConfig(CONFIG_DIR);
-    expect(characters).toHaveLength(9);
+    expect(characters).toHaveLength(6);
     expect(characters.map((c) => c.id)).toContain('kim-team-lead');
   });
 

@@ -1,0 +1,6 @@
+[
+  { "characterId": "code-reviewer", "trigger": { "eventType": "agent.start" }, "templates": ["리뷰 시작합니다", "코드 좀 볼게요"] },
+  { "characterId": "code-reviewer", "trigger": { "eventType": "agent.stop" }, "templates": ["리뷰 완료", "LGTM"] },
+  { "characterId": "code-reviewer", "trigger": { "eventType": "agent.start", "conditions": { "queueDepthGte": 2 } }, "templates": ["지금 {queueDepth}개 리뷰 대기중..."] },
+  { "characterId": "code-reviewer", "trigger": { "eventType": "tool.pre" }, "templates": ["체크"] }
+]

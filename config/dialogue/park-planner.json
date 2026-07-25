@@ -1,5 +1,0 @@
-[
-  { "characterId": "park-planner", "trigger": { "eventType": "agent.start" }, "templates": ["잠깐, 그림부터 그립시다"] },
-  { "characterId": "park-planner", "trigger": { "eventType": "agent.stop" }, "templates": ["자, 이 흐름으로 갑시다"] },
-  { "characterId": "park-planner", "trigger": { "eventType": "tool.pre" }, "templates": ["구조부터 확인"] }
-]

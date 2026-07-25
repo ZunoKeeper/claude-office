@@ -30,11 +30,11 @@ describe('POST /hook', () => {
 
     const r2 = await app.inject({
       method: 'POST', url: '/hook', headers: { 'x-cm-event': 'SubagentStart' },
-      payload: { session_id: 's1', agent_id: 'a1', agent_type: 'Explore' },
+      payload: { session_id: 's1', agent_id: 'a1', agent_type: 'general-purpose' },
     });
     expect(r2.statusCode).toBe(200);
-    expect(store.get('lee-researcher').status).toBe('working');
-    expect(store.get('lee-researcher').queue).toHaveLength(1);
+    expect(store.get('code-reviewer').status).toBe('working');
+    expect(store.get('code-reviewer').queue).toHaveLength(1);
   });
 
   it('malformed payload returns 200 (never blocks Claude Code)', async () => {

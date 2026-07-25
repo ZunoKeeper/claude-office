@@ -3,11 +3,8 @@ import type { ActivityRule } from '../shared/config.js';
 import type { DomainEvent } from '../shared/events.js';
 
 const AGENT_TYPE_MAP: Record<string, CharacterId> = {
-  Plan: 'park-planner',
-  Explore: 'lee-researcher',
-  'general-purpose': 'jung-newbie',
-  'claude-code-guide': 'jo-senior',
-  'statusline-setup': 'choi-office',
+  Plan: 'planner-researcher',
+  'general-purpose': 'code-reviewer',
 };
 
 const FALLBACK: CharacterId = 'kim-team-lead';

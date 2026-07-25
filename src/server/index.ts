@@ -201,12 +201,6 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
         if (rawModel && (evt.type === 'tool.pre' || evt.type === 'agent.start')) {
           store.setModel(charId, rawModel);
         }
-
-        if (evt.type === 'agent.start' && charId !== 'park-planner') {
-          const target = characters.find((c) => c.id === charId);
-          const name = target?.name ?? charId;
-          store.setLine('park-planner', `${name}에게 맡깁시다`, 3000);
-        }
       }
     });
     await tailer.start();
