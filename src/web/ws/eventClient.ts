@@ -17,6 +17,7 @@ export function connectWs(url: string, store: () => Store): { close: () => void 
       switch (msg.kind) {
         case 'snapshot': store().applySnapshot(msg.characters); break;
         case 'characterUpdated': store().upsert(msg.state); break;
+        case 'event': store().pushEvent(msg.event); break;
         default: break;
       }
     };

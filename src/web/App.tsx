@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { GridDashboard } from './views/GridDashboard.js';
 import { connectWs } from './ws/eventClient.js';
 import { useCharacterStore } from './store/characterStore.js';
+import { EventTicker } from './components/EventTicker.js';
 
 export function App() {
   const connected = useCharacterStore((s) => s.connected);
@@ -23,6 +24,7 @@ export function App() {
         }}>{connected ? 'connected' : 'disconnected'}</span>
       </header>
       <GridDashboard />
+      <EventTicker />
     </div>
   );
 }

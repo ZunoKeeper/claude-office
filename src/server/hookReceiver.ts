@@ -7,11 +7,13 @@ import { pickLine, type DialogueContext } from './dialogue/pool.js';
 import type { CharacterId } from '../shared/character.js';
 import type { DialogueEntry } from '../shared/dialogue.js';
 import type { DomainEvent } from '../shared/events.js';
+import type { WsBroadcaster } from './wsHub.js';
 
 interface Deps {
   router: ReturnType<typeof createRouter>;
   store: StateStore;
   dialogues: Map<CharacterId, DialogueEntry[]>;
+  ws?: WsBroadcaster;
 }
 
 function slotsFor(
@@ -50,6 +52,7 @@ export function registerHookReceiver(app: FastifyInstance, deps: Deps): void {
     }
     const evt = normalizeHook(eventName, payload ?? {}, Date.now());
     if (!evt) { reply.code(200); return { ok: false, reason: 'unnormalizable' }; }
+    deps.ws?.broadcast({ kind: 'event', event: evt });
     const charId = deps.router.route(evt);
     const charBefore = deps.store.get(charId);
     const slots = slotsFor(evt, charBefore);

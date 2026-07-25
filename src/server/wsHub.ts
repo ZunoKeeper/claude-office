@@ -5,7 +5,11 @@ import type { WsMessage } from '../shared/ws.js';
 
 interface Deps { store: StateStore }
 
-export function registerWsHub(app: FastifyInstance, deps: Deps): void {
+export interface WsBroadcaster {
+  broadcast(msg: WsMessage): void;
+}
+
+export function registerWsHub(app: FastifyInstance, deps: Deps): WsBroadcaster {
   const clients = new Set<{ send: (data: string) => void; close: () => void }>();
 
   deps.store.on('characterUpdated', (state: CharacterState) => {
@@ -24,4 +28,11 @@ export function registerWsHub(app: FastifyInstance, deps: Deps): void {
     socket.send(JSON.stringify(snapshot));
     socket.on('close', () => clients.delete(wrapper));
   });
+
+  return {
+    broadcast(msg: WsMessage) {
+      const data = JSON.stringify(msg);
+      for (const c of clients) c.send(data);
+    },
+  };
 }

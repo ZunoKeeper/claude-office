@@ -35,8 +35,8 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
   }
 
   app.get('/health', async () => ({ ok: true }));
-  registerHookReceiver(app, { router, store, dialogues });
-  registerWsHub(app, { store });
+  const ws = registerWsHub(app, { store });
+  registerHookReceiver(app, { router, store, dialogues, ws });
 
   const host = opts.host ?? process.env.HOST ?? '0.0.0.0';
   const port = opts.port ?? Number(process.env.PORT ?? 4000);
