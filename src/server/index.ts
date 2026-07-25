@@ -24,7 +24,7 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
   await app.register(websocket);
 
   const configDir = opts.configDir ?? path.resolve(process.cwd(), 'config');
-  const { rules } = await loadConfig(configDir);
+  const { characters, rules } = await loadConfig(configDir);
   const dialogues = await loadDialogues(path.join(configDir, 'dialogue'));
   const router = createRouter(rules);
   const store = createStateStore([...ALL_CHARACTER_IDS]);
@@ -35,6 +35,7 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
   }
 
   app.get('/health', async () => ({ ok: true }));
+  app.get('/config/characters', async () => characters);
   const ws = registerWsHub(app, { store });
   registerHookReceiver(app, { router, store, dialogues, ws });
 

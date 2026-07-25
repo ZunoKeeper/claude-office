@@ -1,0 +1,28 @@
+import { useEffect, useRef } from 'react';
+import { OfficeScene } from '../pixi/OfficeScene.js';
+import { useCharacterStore } from '../store/characterStore.js';
+import { ALL_CHARACTER_IDS, type CharacterState } from '../../shared/character.js';
+import type { CharacterConfig } from '../../shared/config.js';
+
+function empty(id: CharacterConfig['id']): CharacterState {
+  return { id, status: 'off', queue: [], stats: { tasksCompleted: 0, toolCallsTotal: 0, errorsCount: 0 } };
+}
+
+export function IsometricOffice({ configs }: { configs: CharacterConfig[] }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const sceneRef = useRef<OfficeScene | null>(null);
+  const characters = useCharacterStore((s) => s.characters);
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    sceneRef.current = new OfficeScene(canvasRef.current);
+    return () => { sceneRef.current?.destroy(); sceneRef.current = null; };
+  }, []);
+
+  useEffect(() => {
+    const states = ALL_CHARACTER_IDS.map((id) => characters[id] ?? empty(id));
+    sceneRef.current?.setCharacters(states, configs);
+  }, [characters, configs]);
+
+  return <canvas ref={canvasRef} style={{ maxWidth: '100%', display: 'block', margin: '0 auto' }} />;
+}
