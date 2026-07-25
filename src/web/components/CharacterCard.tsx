@@ -1,6 +1,5 @@
 import type { CharacterState } from '../../shared/character.js';
 import { StatusBadge } from './StatusBadge.js';
-import { SpeechBubble } from './SpeechBubble.js';
 import { TicketQueue } from './TicketQueue.js';
 import { PixelAvatar } from './PixelAvatar.js';
 import { useNow, formatRelative } from '../hooks/useNow.js';
@@ -27,13 +26,17 @@ export function CharacterCard({ state, name, role, description }: Props) {
     : null;
   const isFresh = state.lastUpdatedAt && now - state.lastUpdatedAt < 1500;
   const modelLabel = shortenModel(state.currentModel);
+  const cardTitle = description ?? '';
 
   return (
-    <div className={`desk ${state.status === 'error' ? 'error' : ''} status-${state.status}`}>
+    <div
+      className={`desk ${state.status === 'error' ? 'error' : ''} status-${state.status}`}
+      title={cardTitle}
+    >
       <div className="desk-header">
         <div className="desk-name-block">
           <div className="avatar-frame">
-            <PixelAvatar id={state.id} size={40} />
+            <PixelAvatar id={state.id} size={48} />
           </div>
           <div className="desk-title">
             <span className="name">
@@ -55,18 +58,16 @@ export function CharacterCard({ state, name, role, description }: Props) {
         <StatusBadge status={state.status} />
       </div>
 
-      {description && <div className="desk-description">{description}</div>}
-
-      {state.currentActivity && (
-        <div className="activity">
-          {state.currentActivity.toolName}: {state.currentActivity.label}
-          {activityElapsed !== null && <span className="activity-elapsed"> · {activityElapsed}s</span>}
-        </div>
-      )}
-
-      {state.lastLine && (
-        <SpeechBubble text={state.lastLine.text} ts={state.lastLine.ts} ttlMs={state.lastLine.ttlMs} />
-      )}
+      <div className="activity">
+        {state.currentActivity ? (
+          <>
+            {state.currentActivity.toolName}: {state.currentActivity.label}
+            {activityElapsed !== null && <span className="activity-elapsed"> · {activityElapsed}s</span>}
+          </>
+        ) : (
+          <span className="activity-empty">대기 중</span>
+        )}
+      </div>
 
       <TicketQueue tickets={state.queue} />
 
