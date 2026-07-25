@@ -2,40 +2,41 @@
 
 Claude Code 서브에이전트를 "중소기업 외주 개발팀" 캐릭터로 시각화하는 로컬 대시보드.
 
-## 개발 (M1 완료 시점)
+## 설치
 
-- 요구: Node.js 20 이상
-- 설치: `npm install`
-- 서버 실행: `npm run dev:server` → `http://localhost:4000`
-- 헬스체크: `curl localhost:4000/health`
-- Hook 이벤트 주입:
-  ```
-  curl -X POST -H 'X-CM-Event: SessionStart' -H 'Content-Type: application/json' \
-       -d '{"session_id":"s","cwd":"/tmp"}' localhost:4000/hook
-  ```
-- WS 관찰: `wscat -c ws://localhost:4000/live`
-- 테스트: `npm test`
+- 요구: Node.js 20+
+- `npm install`
+- `npm run build`
+- `npm start` → http://localhost:4000 접속
 
-## M2 스모크
+## 개발 모드
 
-1. `npm run build:web && npm run dev:server`
-2. 브라우저 `http://localhost:4000` → 9개 카드 회색(off)로 표시
-3. 아래 curl 순차 실행:
-   ```
-   curl -X POST -H 'X-CM-Event: SessionStart' -H 'Content-Type: application/json' \
-        -d '{"session_id":"s","cwd":"/x"}' localhost:4000/hook
-   curl -X POST -H 'X-CM-Event: SubagentStart' -H 'Content-Type: application/json' \
-        -d '{"session_id":"s","agent_id":"a1","agent_type":"Explore","prompt":"kafka"}' localhost:4000/hook
-   curl -X POST -H 'X-CM-Event: PreToolUse' -H 'Content-Type: application/json' \
-        -d '{"session_id":"s","agent_id":"a1","tool_name":"Grep","tool_input":{"pattern":"kafka"}}' localhost:4000/hook
-   curl -X POST -H 'X-CM-Event: PostToolUse' -H 'Content-Type: application/json' \
-        -d '{"session_id":"s","agent_id":"a1","tool_name":"Grep","tool_response":{"success":true}}' localhost:4000/hook
-   ```
-4. 확인: 이대리 카드 상태 idle → working → done, 대사 표시, 티켓 큐 아이콘 표시, 티커에 이벤트 라인.
+- `npm run dev` (서버 + Vite 동시 실행)
+- 서버: `http://localhost:4000`
+- Vite: `http://localhost:5173` (자동 프록시)
 
-## Roadmap
+## 첫 실행
 
-- M1: 백엔드 이벤트 파이프라인 ✅
-- M2: 그리드 대시보드 MVP
-- M3: 아이소메트릭 오피스
-- M4: 재생·온보딩·폴리시
+1. 브라우저에서 접속 → 온보딩 화면 표시
+2. "전역" 또는 "현재 프로젝트" 선택 → 자동 설치
+3. 이후 Claude Code 세션에서 발생하는 hook 이벤트가 실시간 반영
+
+## 지난 세션 재생
+
+- 상단 재생 컨트롤에 트랜스크립트 파일 경로 입력 (예: `~/.claude/projects/xxx/session.jsonl`)
+- 속도 조절 → 재생
+
+## 뷰 전환
+
+- 우상단 [Grid | Office] 토글로 카드 대시보드 ↔ 아이소메트릭 오피스 전환
+
+## 환경 변수
+
+- `PORT` (기본 4000)
+- `HOST` (기본 0.0.0.0)
+- `LOG_LEVEL` (기본 info)
+- `CM_TAIL_LOGS=1` — 서버 기동 시 자동으로 `~/.claude/projects` JSONL tail 시작
+
+## 테스트
+
+- `npm test` — vitest 실행 (단위 + 통합)
