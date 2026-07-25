@@ -4,6 +4,7 @@ import { IsometricOffice } from './views/IsometricOffice.js';
 import { ViewSwitcher, type ViewKind } from './views/ViewSwitcher.js';
 import { ReplayControls } from './views/ReplayControls.js';
 import { OnboardingScreen } from './views/OnboardingScreen.js';
+import { SettingsScreen } from './views/SettingsScreen.js';
 import { EventTicker } from './components/EventTicker.js';
 import { connectWs } from './ws/eventClient.js';
 import { useCharacterStore } from './store/characterStore.js';
@@ -14,6 +15,7 @@ export function App() {
   const events = useCharacterStore((s) => s.events);
   const [view, setView] = useState<ViewKind>('grid');
   const [configs, setConfigs] = useState<CharacterConfig[]>([]);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [dismissed, setDismissed] = useState(
     () => typeof localStorage !== 'undefined' && localStorage.getItem('cm-onboarding-done') === '1',
   );
@@ -38,6 +40,7 @@ export function App() {
         <h2 className="app-title">Claude Office Story</h2>
         <div className="app-header-right">
           <ViewSwitcher active={view} onChange={setView} />
+          <button className="header-btn" onClick={() => setSettingsOpen(true)} title="팀 설정">⚙ SETUP</button>
           <span className={`conn-pill ${connected ? 'on' : ''}`}>
             {connected ? 'ONLINE' : 'OFFLINE'}
           </span>
@@ -47,9 +50,12 @@ export function App() {
       {showOnboarding ? (
         <OnboardingScreen onComplete={completeOnboarding} />
       ) : (
-        view === 'grid' ? <GridDashboard /> : <IsometricOffice configs={configs} />
+        view === 'grid' ? <GridDashboard configs={configs} /> : <IsometricOffice configs={configs} />
       )}
       <EventTicker />
+      {settingsOpen && (
+        <SettingsScreen configs={configs} onClose={() => setSettingsOpen(false)} onSaved={setConfigs} />
+      )}
     </div>
   );
 }

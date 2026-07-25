@@ -128,6 +128,23 @@ html, body {
   text-shadow: none;
 }
 
+/* Header button (settings, etc.) */
+.header-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  padding: 6px 10px;
+  background: var(--gold);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--ink);
+  letter-spacing: 1px;
+  transition: transform 80ms;
+}
+
+.header-btn:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--ink); }
+.header-btn:active { transform: translate(2px, 2px); box-shadow: none; }
+
 /* Connection pill */
 .conn-pill {
   font-family: 'Press Start 2P', monospace;
@@ -335,6 +352,60 @@ html, body {
   margin-top: 3px;
 }
 
+/* Model badge — small chip under role */
+.model-badge {
+  display: inline-block;
+  margin-top: 4px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  padding: 3px 6px;
+  background: var(--sky);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  align-self: flex-start;
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+/* Description — hover-only tooltip overlay on the card */
+.desk-description {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 100%;
+  transform: translateY(6px);
+  background: var(--ink);
+  color: var(--paper);
+  font-family: 'DotGothic16', monospace;
+  font-size: 12px;
+  padding: 8px 12px;
+  line-height: 1.35;
+  border: 2px solid var(--gold);
+  box-shadow: var(--shadow-sm);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 140ms, transform 140ms;
+  z-index: 5;
+  letter-spacing: 0.3px;
+}
+
+.desk-description::after {
+  content: '';
+  position: absolute;
+  bottom: -8px; left: 20px;
+  width: 10px; height: 10px;
+  background: var(--ink);
+  border-right: 2px solid var(--gold);
+  border-bottom: 2px solid var(--gold);
+  transform: rotate(45deg);
+}
+
+.desk:hover .desk-description {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* Status badge */
 .badge {
   font-family: 'Press Start 2P', monospace;
@@ -459,7 +530,7 @@ html, body {
 /* Stats footer — Kairosoft-style icon rows */
 .stats {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   font-family: 'Press Start 2P', monospace;
   font-size: 10px;
   color: var(--ink);
@@ -565,4 +636,186 @@ html, body {
   border: 2px solid var(--ink);
   font-family: 'DotGothic16', monospace;
   font-size: 13px;
+}
+
+/* ===== Settings screen (modal overlay) ===== */
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  z-index: 200;
+  padding: 40px 20px;
+  overflow-y: auto;
+}
+
+.settings-panel {
+  width: 100%;
+  max-width: 780px;
+  background: var(--paper);
+  border: 4px solid var(--ink);
+  box-shadow: var(--shadow-lg);
+  padding: 20px;
+  color: var(--ink);
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 3px solid var(--ink);
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+}
+
+.settings-header h2 {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 16px;
+  margin: 0;
+  color: var(--wall);
+  letter-spacing: 2px;
+}
+
+.settings-close {
+  font-family: inherit;
+  font-size: 18px;
+  padding: 4px 10px;
+  background: var(--st-error);
+  color: white;
+  border: 2px solid var(--ink);
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+.settings-close:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--ink); }
+
+.settings-hint {
+  font-family: 'DotGothic16', monospace;
+  font-size: 12px;
+  color: var(--ink-muted);
+  margin: 0 0 12px 0;
+}
+
+.settings-hint code {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  background: var(--floor-2);
+  padding: 2px 4px;
+  border: 1px solid var(--ink);
+}
+
+.settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.settings-row {
+  display: flex;
+  gap: 12px;
+  padding: 10px;
+  background: var(--floor-1);
+  border: 2px solid var(--ink);
+}
+
+.settings-avatar {
+  flex-shrink: 0;
+  padding: 4px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  align-self: flex-start;
+}
+
+.settings-fields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.settings-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 8px;
+}
+
+.settings-fields label {
+  display: flex;
+  flex-direction: column;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  color: var(--wall);
+  letter-spacing: 1px;
+  gap: 2px;
+}
+
+.settings-fields input,
+.settings-fields select,
+.settings-fields textarea {
+  font-family: 'DotGothic16', monospace;
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  padding: 6px 8px;
+  outline: none;
+}
+
+.settings-fields input:focus,
+.settings-fields textarea:focus,
+.settings-fields select:focus {
+  background: var(--floor-1);
+  box-shadow: 0 0 0 2px var(--gold);
+}
+
+.settings-fields textarea {
+  resize: vertical;
+  min-height: 40px;
+}
+
+.settings-desc-label { width: 100%; }
+
+.settings-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 3px dashed var(--floor-3);
+}
+
+.settings-save,
+.settings-cancel {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  padding: 10px 16px;
+  border: 3px solid var(--ink);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: transform 80ms;
+  letter-spacing: 1px;
+  color: white;
+}
+
+.settings-save { background: var(--st-working); }
+.settings-cancel { background: var(--wall-2); }
+
+.settings-save:hover:not(:disabled),
+.settings-cancel:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--ink); }
+.settings-save:active:not(:disabled),
+.settings-cancel:active { transform: translate(2px, 2px); box-shadow: none; }
+.settings-save:disabled { background: var(--st-off); cursor: not-allowed; opacity: 0.55; }
+
+.settings-status {
+  font-family: 'DotGothic16', monospace;
+  font-size: 13px;
+  color: var(--ink);
+  padding: 6px 10px;
+  background: var(--floor-2);
+  border: 2px solid var(--ink);
 }

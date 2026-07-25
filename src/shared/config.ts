@@ -4,6 +4,8 @@ export interface CharacterConfig {
   id: CharacterId;
   name: string;
   role: string;
+  model?: string;
+  description?: string;
   officeSeat: { x: number; y: number };
   spriteSheet: string;
 }

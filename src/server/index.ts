@@ -15,7 +15,8 @@ import { registerReplayer } from './replayer.js';
 import { createLogTailer } from './logTailer.js';
 import { createTranscriptProcessor } from './transcriptToEvents.js';
 import { installHooks } from './setup/installHooks.js';
-import { ALL_CHARACTER_IDS } from '../shared/character.js';
+import { loadOverrides, saveOverrides, applyOverrides, type CharacterOverrides, overridesPath } from './setup/overrides.js';
+import { ALL_CHARACTER_IDS, type CharacterId } from '../shared/character.js';
 
 const loggerOptions: LoggerOptions = {
   transport: process.env.NODE_ENV === 'production' ? undefined : { target: 'pino-pretty' },
@@ -30,7 +31,9 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
   await app.register(websocket);
 
   const configDir = opts.configDir ?? path.resolve(process.cwd(), 'config');
-  const { characters, rules } = await loadConfig(configDir);
+  const { characters: baseCharacters, rules } = await loadConfig(configDir);
+  const overrides = await loadOverrides();
+  let characters = applyOverrides(baseCharacters, overrides);
   const dialogues = await loadDialogues(path.join(configDir, 'dialogue'));
   const router = createRouter(rules);
   const store = createStateStore([...ALL_CHARACTER_IDS]);
@@ -42,6 +45,29 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
 
   app.get('/health', async () => ({ ok: true }));
   app.get('/config/characters', async () => characters);
+
+  app.patch<{ Params: { id: string }; Body: CharacterOverrides }>(
+    '/config/characters/:id',
+    async (req, reply) => {
+      const id = req.params.id as CharacterId;
+      if (!ALL_CHARACTER_IDS.includes(id)) {
+        reply.code(404);
+        return { ok: false, error: `unknown character: ${id}` };
+      }
+      const body = (req.body ?? {}) as CharacterOverrides;
+      const patch: CharacterOverrides = {};
+      if (typeof body.name === 'string') patch.name = body.name.trim();
+      if (typeof body.role === 'string') patch.role = body.role.trim();
+      if (typeof body.model === 'string') patch.model = body.model.trim();
+      if (typeof body.description === 'string') patch.description = body.description.trim();
+      overrides[id] = { ...(overrides[id] ?? {}), ...patch };
+      characters = applyOverrides(baseCharacters, overrides);
+      const target = await saveOverrides(overrides);
+      return { ok: true, target, character: characters.find((c) => c.id === id) };
+    },
+  );
+
+  app.get('/config/overrides-path', async () => ({ path: overridesPath() }));
 
   app.post<{ Querystring: { scope?: 'user' | 'project' }; Body: { host?: string } }>(
     '/setup/install-hooks',
