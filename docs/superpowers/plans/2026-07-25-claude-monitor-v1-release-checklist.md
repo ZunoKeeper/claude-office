@@ -1,0 +1,33 @@
+# Claude Monitor v1 Release Checklist
+
+## 자동 검증
+- [ ] `npm test` — 모든 vitest 통과
+- [ ] `npm run build` — 빌드 성공, `dist/web`과 `dist/server` 생성
+
+## 수동 스모크
+- [ ] `npm start` → localhost:4000에서 온보딩 화면 표시
+- [ ] "자동 설치" → 설정 파일 경로가 응답에 표시됨
+- [ ] Claude Code 실제 세션 5분 실행 → 9인 중 최소 3인 활동 감지, 대사 표시
+- [ ] 병렬 서브에이전트 3개 spawn → 큐 티켓 시각화 정확 (active + queued)
+- [ ] Bash 툴 호출 → 오피스 뷰에서 캐릭터가 서버실 방향으로 이동, PostToolUse 후 복귀
+- [ ] tool.post(success=false) → 카드 빨간 테두리, `error` 상태 표시
+- [ ] agent.stop → `done` 상태 (초록 체크) 후 idle로 복귀
+- [ ] WS 강제 종료 (`kill` 후 재기동) → 5초 이내 재접속 배너 사라짐
+- [ ] 재생 컨트롤에 fixture jsonl 경로 → 이벤트 순차 반영 확인
+- [ ] View 토글 Grid ↔ Office 반복 → 상태 유지, 메모리 누수 없음 (10분 관찰)
+
+## 문서
+- [ ] README 최신
+- [ ] 스펙(`docs/superpowers/specs/…`)과 실제 동작 일치
+
+## 릴리스
+- [ ] `main` 브랜치 클린 (uncommitted 없음)
+- [ ] 태그: `git tag v0.1.0 && git push origin v0.1.0` (옵션)
+
+## v1.1 Follow-ups
+
+다음 항목은 v1 범위에서 제외되었으며 v1.1에서 처리 예정.
+
+- **Playwright E2E 스모크 테스트**: 스펙 §10의 4개 시나리오(온보딩, hook→카드, view 토글, WS 재접속) 구현. v1은 vitest 단위/통합(48개)로 커버.
+- **캐릭터 스프라이트 업그레이드**: v1의 프로그래매틱 스프라이트를 chibi 스타일 SVG 또는 폰트 리치 아트로 교체.
+- **npm audit high 해소**: Fastify 4 → 5 업그레이드로 transitive dep(`find-my-way`) high-severity 경고 해소.

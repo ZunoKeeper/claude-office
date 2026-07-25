@@ -1,0 +1,5 @@
+[
+  { "characterId": "jo-senior", "trigger": { "eventType": "agent.start" }, "templates": ["그거? 매뉴얼에 있어. 잠깐"] },
+  { "characterId": "jo-senior", "trigger": { "eventType": "agent.stop" }, "templates": ["이렇게 하면 돼"] },
+  { "characterId": "jo-senior", "trigger": { "eventType": "tool.post" }, "templates": ["공식 문서 확인 완료"] }
+]

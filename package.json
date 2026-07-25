@@ -1,0 +1,47 @@
+{
+  "name": "claude-monitor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=18.17"
+  },
+  "scripts": {
+    "dev:server": "tsx watch src/server/index.ts",
+    "dev:web": "vite",
+    "dev": "concurrently -k 'npm:dev:server' 'npm:dev:web'",
+    "build:web": "vite build",
+    "build:server": "tsc -p tsconfig.server.json",
+    "build": "npm run build:web && npm run build:server",
+    "start": "node dist/server/server/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@fastify/static": "^7.0.4",
+    "@fastify/websocket": "^10.0.1",
+    "chokidar": "^3.6.0",
+    "fastify": "^4.28.1",
+    "ndjson": "^2.0.0",
+    "pino": "^9.4.0",
+    "pino-pretty": "^11.2.2",
+    "pixi.js": "^8.19.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^4.5.5"
+  },
+  "devDependencies": {
+    "@types/ndjson": "^2.0.4",
+    "@types/node": "^20.14.15",
+    "@types/react": "^18.3.4",
+    "@types/react-dom": "^18.3.0",
+    "@types/ws": "^8.18.1",
+    "@vitejs/plugin-react": "^4.3.1",
+    "concurrently": "^8.2.2",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.2",
+    "vitest": "^2.0.5",
+    "ws": "^8.21.1"
+  }
+}

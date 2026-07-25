@@ -1,0 +1,1 @@
+{ "session_id": "sess-abc", "agent_id": "agt-1", "tool_name": "Write", "tool_input": { "file_path": "/proj/src/app.ts", "content": "..." } }

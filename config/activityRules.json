@@ -1,0 +1,7 @@
+[
+  { "characterId": "yu-dev",       "priority": 100, "match": { "toolName": ["Write", "Edit"], "filePathPattern": "\\.(py|ts|tsx|js|jsx|go|java|rs|c|cpp|h|hpp|rb|php)$" } },
+  { "characterId": "han-qa",       "priority": 110, "match": { "toolName": ["Bash"], "bashCommandPattern": "\\b(pytest|jest|vitest|go test|cargo test|mocha)\\b" } },
+  { "characterId": "seo-designer", "priority": 100, "match": { "toolName": ["Write", "Edit"], "filePathPattern": "\\.(css|scss|html|vue|svg)$" } },
+  { "characterId": "seo-designer", "priority": 90,  "match": { "toolName": ["WebFetch"], "webFetchUrlPattern": "figma\\.com" } },
+  { "characterId": "choi-office",  "priority": 95,  "match": { "toolName": ["Write", "Edit"], "filePathPattern": "settings\\.json$|\\.claude/.*\\.(json|md)$" } }
+]
