@@ -76,6 +76,10 @@ export class CharacterSprite extends Container {
    *  Used for isometric depth sort and world-space direction inference. */
   worldPos?: { x: number; y: number };
 
+  get characterId(): CharacterId {
+    return this.id;
+  }
+
   constructor(private id: CharacterId, name: string) {
     super();
     this.atlas = buildAtlas();

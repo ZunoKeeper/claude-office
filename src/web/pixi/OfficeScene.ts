@@ -1,4 +1,4 @@
-import { Application, Assets, Container, Sprite } from 'pixi.js';
+import { Application, Assets, Container, type FederatedPointerEvent, Sprite } from 'pixi.js';
 import type { CharacterId, CharacterState } from '../../shared/character.js';
 import type { CharacterConfig } from '../../shared/config.js';
 import { CharacterSprite } from './CharacterSprite.js';
@@ -38,6 +38,8 @@ export class OfficeScene {
   private worldLayer = new Container();
   private ready = false;
   private destroyed = false;
+  private editMode = false;
+  private dragging: { sprite: CharacterSprite; offsetX: number; offsetY: number } | null = null;
   private sprites = new Map<CharacterId, CharacterSprite>();
   private seats = new Map<CharacterId, { x: number; y: number }>();
   private lastActivity = new Map<CharacterId, string | undefined>();
@@ -121,6 +123,9 @@ export class OfficeScene {
         sprite.y = seat.y;
         sprite.worldPos = { x: seat.x, y: seat.y };
         sprite.setDirection(seatDir);
+        this.attachDragHandlers(sprite);
+        sprite.eventMode = this.editMode ? 'dynamic' : 'static';
+        sprite.cursor = this.editMode ? 'grab' : 'default';
         this.worldLayer.addChild(sprite);
         this.sprites.set(s.id, sprite);
       } else if (!this.lastActivity.get(s.id)) {
@@ -161,6 +166,61 @@ export class OfficeScene {
         }
       }
     }
+  }
+
+  setEditMode(enable: boolean): void {
+    this.editMode = enable;
+    for (const s of this.sprites.values()) {
+      s.eventMode = enable ? 'dynamic' : 'static';
+      s.cursor = enable ? 'grab' : 'default';
+    }
+    if (!enable && this.dragging) {
+      this.dragging.sprite.cursor = 'default';
+      this.dragging = null;
+    }
+  }
+
+  private attachDragHandlers(sprite: CharacterSprite): void {
+    sprite.on('pointerdown', (e: FederatedPointerEvent) => {
+      if (!this.editMode) return;
+      const local = this.worldLayer.toLocal(e.global);
+      this.dragging = {
+        sprite,
+        offsetX: sprite.x - local.x,
+        offsetY: sprite.y - local.y,
+      };
+      sprite.cursor = 'grabbing';
+      // Bring dragged sprite to front so it's not hidden under others while
+      // moving. zIndex resets on the next ticker frame anyway.
+      sprite.zIndex = 10_000;
+    });
+
+    const stage = this.app.stage;
+    stage.eventMode = 'static';
+    stage.hitArea = { contains: () => true };
+    stage.on('pointermove', (e: FederatedPointerEvent) => {
+      if (!this.dragging || this.dragging.sprite !== sprite) return;
+      const p = this.worldLayer.toLocal(e.global);
+      sprite.x = Math.max(0, Math.min(CANVAS_W, p.x + this.dragging.offsetX));
+      sprite.y = Math.max(0, Math.min(CANVAS_H, p.y + this.dragging.offsetY));
+    });
+    const finishDrag = () => {
+      if (!this.dragging || this.dragging.sprite !== sprite) return;
+      const droppedX = Math.round(sprite.x);
+      const droppedY = Math.round(sprite.y);
+      sprite.cursor = 'grab';
+      this.dragging = null;
+      void fetch(`/config/characters/${sprite.characterId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ officeSeat: { x: droppedX, y: droppedY } }),
+      }).catch(() => {
+        /* swallow — the WS configUpdated broadcast will re-sync on success,
+         * and on failure the next config refetch corrects the sprite. */
+      });
+    };
+    stage.on('pointerup', finishDrag);
+    stage.on('pointerupoutside', finishDrag);
   }
 
   private moveSpriteScreen(sprite: CharacterSprite, screenX: number, screenY: number, durationMs: number): Promise<void> {

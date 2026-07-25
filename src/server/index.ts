@@ -51,6 +51,8 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
     await app.register(staticPlugin, { root: webDist, prefix: '/' });
   }
 
+  const ws = registerWsHub(app, { store });
+
   app.get('/health', async () => ({ ok: true }));
   app.get('/config/characters', async () => characters);
 
@@ -65,9 +67,21 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
       const body = (req.body ?? {}) as CharacterOverrides;
       const patch: CharacterOverrides = {};
       if (typeof body.name === 'string') patch.name = body.name.trim();
+      if (body.officeSeat && typeof body.officeSeat.x === 'number' && typeof body.officeSeat.y === 'number') {
+        patch.officeSeat = {
+          x: Math.round(body.officeSeat.x),
+          y: Math.round(body.officeSeat.y),
+        };
+      }
+      if (body.seatDirection && ['N', 'S', 'E', 'W'].includes(body.seatDirection)) {
+        patch.seatDirection = body.seatDirection;
+      }
       overrides[id] = { ...(overrides[id] ?? {}), ...patch };
       characters = applyOverrides(baseCharacters, overrides);
       const target = await saveOverrides(overrides);
+      // Nudge every connected client to re-fetch so the new seat propagates
+      // instantly to all open dashboards.
+      ws.broadcast({ kind: 'configUpdated' });
       return { ok: true, target, character: characters.find((c) => c.id === id) };
     },
   );
@@ -75,7 +89,6 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
   app.get('/config/overrides-path', async () => ({ path: overridesPath() }));
 
   app.get('/config/models', async () => ({
-    // Curated Claude Code aliases. Users can also enter a custom string in Settings.
     models: ['fable', 'opus', 'sonnet', 'haiku'],
   }));
 
@@ -89,7 +102,6 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
       return { ok: true, target };
     },
   );
-  const ws = registerWsHub(app, { store });
   registerHookReceiver(app, { router, store, dialogues, ws });
   registerReplayer(app, { store, router });
 

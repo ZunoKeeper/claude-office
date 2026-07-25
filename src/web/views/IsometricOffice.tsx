@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { OfficeScene } from '../pixi/OfficeScene.js';
 import { useCharacterStore } from '../store/characterStore.js';
 import { ALL_CHARACTER_IDS, type CharacterState } from '../../shared/character.js';
@@ -13,6 +13,7 @@ export function IsometricOffice({ configs }: { configs: CharacterConfig[] }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<OfficeScene | null>(null);
   const characters = useCharacterStore((s) => s.characters);
+  const [editMode, setEditMode] = useState(false);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -25,8 +26,30 @@ export function IsometricOffice({ configs }: { configs: CharacterConfig[] }) {
     sceneRef.current?.setCharacters(states, configs);
   }, [characters, configs]);
 
+  useEffect(() => {
+    sceneRef.current?.setEditMode(editMode);
+  }, [editMode]);
+
   return (
     <div style={{ position: 'relative', width: 920, margin: '0 auto' }}>
+      <div style={{
+        position: 'absolute', top: 8, right: 8, zIndex: 10, display: 'flex', gap: 6,
+      }}>
+        <button
+          onClick={() => setEditMode((v) => !v)}
+          style={{
+            padding: '4px 10px',
+            fontFamily: 'DotGothic16, monospace',
+            fontSize: 12,
+            border: '1.5px solid #2a1a0a',
+            borderRadius: 4,
+            background: editMode ? '#fbbf24' : '#fff2c4',
+            cursor: 'pointer',
+          }}
+        >
+          {editMode ? '✎ 편집 중 · 클릭해 저장' : '✎ 위치 편집'}
+        </button>
+      </div>
       <canvas ref={canvasRef} style={{ display: 'block' }} />
       <OfficeOverlay configs={configs} />
     </div>

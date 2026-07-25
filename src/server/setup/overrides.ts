@@ -7,11 +7,12 @@ import type { CharacterConfig } from '../../shared/config.js';
 const OVERRIDES_DIR = path.join(homedir(), '.claude-office');
 const OVERRIDES_FILE = path.join(OVERRIDES_DIR, 'overrides.json');
 
-/** Fields users are allowed to override via the settings screen.
- *  As of the "actual-model-only" pass, only `name` is editable — role and
- *  description are behavior-derived and should stay in sync with the router
- *  configuration, so we hardcode them in config/characters.json. */
-export type OverridableField = 'name';
+/** Fields users are allowed to override via the settings screen or the
+ *  in-app edit-mode drag. Role/description stay derived from the router
+ *  config so they're not editable here. Seat + direction go here (rather
+ *  than characters.json) because they're per-user layout, not a code-level
+ *  behavior change. */
+export type OverridableField = 'name' | 'officeSeat' | 'seatDirection';
 export type CharacterOverrides = Partial<Pick<CharacterConfig, OverridableField>>;
 export type OverrideMap = Partial<Record<CharacterId, CharacterOverrides>>;
 
