@@ -1,12 +1,14 @@
-import { Application, Container, Graphics, Text } from 'pixi.js';
-import type { CharacterState } from '../../shared/character.js';
+import { Application, Container, Graphics } from 'pixi.js';
+import type { CharacterId, CharacterState } from '../../shared/character.js';
 import type { CharacterConfig } from '../../shared/config.js';
 import { screenXY } from './IsometricGrid.js';
+import { CharacterSprite } from './CharacterSprite.js';
 
 export class OfficeScene {
   private app: Application;
   private root = new Container();
   private ready = false;
+  private sprites = new Map<CharacterId, CharacterSprite>();
 
   constructor(private canvas: HTMLCanvasElement) {
     this.app = new Application();
@@ -37,22 +39,19 @@ export class OfficeScene {
 
   setCharacters(states: CharacterState[], configs: CharacterConfig[]): void {
     if (!this.ready) return;
-    // v19 최소 구현: 좌표에 원 + 이름 텍스트만 배치 (스프라이트는 Task 21)
-    this.root.removeChildren();
-    this.drawBackground();
     const cfgMap = new Map(configs.map((c) => [c.id, c]));
     for (const s of states) {
       const cfg = cfgMap.get(s.id);
       if (!cfg) continue;
-      const marker = new Graphics();
-      const color = s.status === 'off' ? '#9ca3af' :
-                    s.status === 'working' ? '#10b981' :
-                    s.status === 'error' ? '#ef4444' : '#3b82f6';
-      marker.circle(cfg.officeSeat.x, cfg.officeSeat.y, 12).fill(color);
-      this.root.addChild(marker);
-      const label = new Text({ text: cfg.name, style: { fontSize: 11, fill: '#111827' } });
-      label.x = cfg.officeSeat.x - 15; label.y = cfg.officeSeat.y + 16;
-      this.root.addChild(label);
+      let sprite = this.sprites.get(s.id);
+      if (!sprite) {
+        sprite = new CharacterSprite(s.id, cfg.name);
+        sprite.x = cfg.officeSeat.x;
+        sprite.y = cfg.officeSeat.y;
+        this.root.addChild(sprite);
+        this.sprites.set(s.id, sprite);
+      }
+      sprite.setStatus(s.status);
     }
   }
 
