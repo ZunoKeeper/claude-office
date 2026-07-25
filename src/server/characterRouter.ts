@@ -3,8 +3,16 @@ import type { ActivityRule } from '../shared/config.js';
 import type { DomainEvent } from '../shared/events.js';
 
 const AGENT_TYPE_MAP: Record<string, CharacterId> = {
+  // Anthropic built-in / project-agnostic types
   Plan: 'planner-researcher',
+  Explore: 'planner-researcher',
   'general-purpose': 'code-reviewer',
+  // Exact-name matches for repo subagents defined under .claude/agents/
+  'planner-researcher': 'planner-researcher',
+  tester: 'tester',
+  debugger: 'debugger',
+  'code-reviewer': 'code-reviewer',
+  'docs-manager': 'docs-manager',
 };
 
 const FALLBACK: CharacterId = 'kim-team-lead';

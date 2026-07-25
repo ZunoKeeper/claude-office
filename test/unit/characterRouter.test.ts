@@ -20,8 +20,20 @@ describe('characterRouter', () => {
     expect(router.route({ type: 'agent.start', ts: 0, sessionId: 's', agentType: 'Plan', agentId: 'a' })).toBe('planner-researcher');
   });
 
+  it('agent.start(Explore) → planner-researcher (Anthropic exploration agent)', () => {
+    expect(router.route({ type: 'agent.start', ts: 0, sessionId: 's', agentType: 'Explore', agentId: 'a' })).toBe('planner-researcher');
+  });
+
+  it('agent.start(tester) → tester (exact-name repo subagent)', () => {
+    expect(router.route({ type: 'agent.start', ts: 0, sessionId: 's', agentType: 'tester', agentId: 'a' })).toBe('tester');
+  });
+
+  it('agent.start(debugger) → debugger (exact-name repo subagent)', () => {
+    expect(router.route({ type: 'agent.start', ts: 0, sessionId: 's', agentType: 'debugger', agentId: 'a' })).toBe('debugger');
+  });
+
   it('agent.start(unknown type) → kim-team-lead (fallback)', () => {
-    expect(router.route({ type: 'agent.start', ts: 0, sessionId: 's', agentType: 'Explore', agentId: 'a' })).toBe('kim-team-lead');
+    expect(router.route({ type: 'agent.start', ts: 0, sessionId: 's', agentType: 'statusline-setup', agentId: 'a' })).toBe('kim-team-lead');
   });
 
   it('agent.start(general-purpose) → code-reviewer', () => {
