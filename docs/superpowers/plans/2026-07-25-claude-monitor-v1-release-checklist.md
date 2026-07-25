@@ -23,3 +23,11 @@
 ## 릴리스
 - [ ] `main` 브랜치 클린 (uncommitted 없음)
 - [ ] 태그: `git tag v0.1.0 && git push origin v0.1.0` (옵션)
+
+## v1.1 Follow-ups
+
+다음 항목은 v1 범위에서 제외되었으며 v1.1에서 처리 예정.
+
+- **Playwright E2E 스모크 테스트**: 스펙 §10의 4개 시나리오(온보딩, hook→카드, view 토글, WS 재접속) 구현. v1은 vitest 단위/통합(48개)로 커버.
+- **캐릭터 스프라이트 업그레이드**: v1의 프로그래매틱 스프라이트를 chibi 스타일 SVG 또는 폰트 리치 아트로 교체.
+- **npm audit high 해소**: Fastify 4 → 5 업그레이드로 transitive dep(`find-my-way`) high-severity 경고 해소.
