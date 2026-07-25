@@ -46,7 +46,7 @@ Claude Code 세션에서 발생하는 hook 이벤트와 트랜스크립트 로�
 ```
 Claude Code 세션
   ├─ hooks (SubagentStart/Stop, PreToolUse/PostToolUse,
-  │         TaskCreated/Completed, UserPromptSubmit, SessionStart/Stop)
+  │         TaskCreated/Completed, UserPromptSubmit, SessionStart/SessionEnd)
   │  → POST http://localhost:4000/hook
   └─ writes JSONL to ~/.claude/projects/**/*.jsonl
 
@@ -329,16 +329,23 @@ type WsMessage =
 ```
 
 **자동 설치** (`POST /setup/install-hooks?scope=user|project`):
-- 대상 `settings.json` 읽기 → 기존 hooks 병합 → 필요한 이벤트에 아래 command 추가
+- 대상 `settings.json` 읽기 → 기존 hooks 병합 → 아래 이벤트들에 동일한 command hook 추가:
+  - `SessionStart`, `SessionEnd`
+  - `UserPromptSubmit`
+  - `SubagentStart`, `SubagentStop`
+  - `PreToolUse`, `PostToolUse`, `PostToolUseFailure`
+  - `TaskCreated`, `TaskCompleted`
 
 ```json
 {
   "type": "command",
-  "command": "curl -sS -X POST http://localhost:4000/hook -H 'Content-Type: application/json' -d @- 2>/dev/null || true",
+  "command": "curl -sS -X POST http://localhost:4000/hook -H 'X-CM-Event: <EVENT_NAME>' -H 'Content-Type: application/json' -d @- 2>/dev/null || true",
   "async": true,
   "timeout": 5
 }
 ```
+
+각 이벤트별로 `X-CM-Event` 헤더에 이벤트 이름을 넣어 `hookReceiver`가 어떤 hook 이벤트에서 온 payload인지 구분. Claude Code hook payload 자체엔 `session_id`, `tool_name`, `tool_input` 등이 포함되지만 이벤트 이름 필드는 없으므로 헤더로 명시.
 
 - `async: true`: Claude Code 블로킹 최소화
 - `|| true`: 백엔드 다운 시 Claude Code 방해 없음
