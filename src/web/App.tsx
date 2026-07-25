@@ -35,7 +35,7 @@ export function App() {
   const showOnboarding = !dismissed && events.length === 0;
 
   return (
-    <div>
+    <div className="app-shell">
       <header className="app-header">
         <h2 className="app-title">Claude Office Story</h2>
         <div className="app-header-right">
