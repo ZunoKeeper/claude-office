@@ -1,6 +1,7 @@
 import type { CharacterState } from '../../shared/character.js';
 import { StatusBadge } from './StatusBadge.js';
 import { SpeechBubble } from './SpeechBubble.js';
+import { TicketQueue } from './TicketQueue.js';
 
 interface Props { state: CharacterState; name: string; role: string }
 
@@ -26,10 +27,12 @@ export function CharacterCard({ state, name, role }: Props) {
       {state.lastLine && (
         <SpeechBubble text={state.lastLine.text} ts={state.lastLine.ts} ttlMs={state.lastLine.ttlMs} />
       )}
-      <div style={{ marginTop: 10, display: 'flex', gap: 12, fontSize: 11, color: '#6b7280' }}>
-        <span>🎫 {state.queue.length}</span>
-        <span>✓ {state.stats.tasksCompleted}</span>
-        <span>✗ {state.stats.errorsCount}</span>
+      <div style={{ marginTop: 10, fontSize: 11, color: '#6b7280' }}>
+        <TicketQueue tickets={state.queue} />
+        <div style={{ display: 'flex', gap: 12, marginTop: 6 }}>
+          <span>✓ {state.stats.tasksCompleted}</span>
+          <span>✗ {state.stats.errorsCount}</span>
+        </div>
       </div>
     </div>
   );
