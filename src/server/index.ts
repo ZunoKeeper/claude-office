@@ -14,6 +14,7 @@ import { registerWsHub } from './wsHub.js';
 import { registerReplayer } from './replayer.js';
 import { createLogTailer } from './logTailer.js';
 import { normalizeHook } from './eventNormalizer.js';
+import { installHooks } from './setup/installHooks.js';
 import { ALL_CHARACTER_IDS } from '../shared/character.js';
 import type { HookEventName, HookPayload } from '../shared/events.js';
 
@@ -41,6 +42,17 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
 
   app.get('/health', async () => ({ ok: true }));
   app.get('/config/characters', async () => characters);
+
+  app.post<{ Querystring: { scope?: 'user' | 'project' }; Body: { host?: string } }>(
+    '/setup/install-hooks',
+    async (req) => {
+      const scope = req.query.scope === 'user' ? 'user' : 'project';
+      const host = req.body?.host ?? `http://${req.hostname}`;
+      const endpoint = `${host}/hook`;
+      const target = await installHooks(scope, endpoint);
+      return { ok: true, target };
+    },
+  );
   const ws = registerWsHub(app, { store });
   registerHookReceiver(app, { router, store, dialogues, ws });
   registerReplayer(app, { store, router });
