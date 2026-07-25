@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { GridDashboard } from './views/GridDashboard.js';
 import { IsometricOffice } from './views/IsometricOffice.js';
 import { ViewSwitcher, type ViewKind } from './views/ViewSwitcher.js';
+import { ReplayControls } from './views/ReplayControls.js';
 import { EventTicker } from './components/EventTicker.js';
 import { connectWs } from './ws/eventClient.js';
 import { useCharacterStore } from './store/characterStore.js';
@@ -34,6 +35,7 @@ export function App() {
           }}>{connected ? 'connected' : 'disconnected'}</span>
         </div>
       </header>
+      <ReplayControls />
       {view === 'grid' ? <GridDashboard /> : <IsometricOffice configs={configs} />}
       <EventTicker />
     </div>
