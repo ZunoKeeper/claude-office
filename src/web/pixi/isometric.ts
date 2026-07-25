@@ -26,9 +26,6 @@ export const ISO_SCALE_Y = 0.25;
 export const ISO_ORIGIN_X = 512;
 export const ISO_ORIGIN_Y = 90;
 
-/** Height (in screen pixels) of a room wall in this projection. */
-export const WALL_HEIGHT = 42;
-
 export function worldToScreen(worldX: number, worldY: number, worldZ = 0): IsoPoint {
   return {
     x: ISO_ORIGIN_X + (worldX - worldY) * ISO_SCALE_X,
