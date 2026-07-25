@@ -1,7 +1,7 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import websocket from '@fastify/websocket';
 import staticPlugin from '@fastify/static';
-import pino from 'pino';
+import pino, { type LoggerOptions } from 'pino';
 import path from 'node:path';
 import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -18,15 +18,16 @@ import { installHooks } from './setup/installHooks.js';
 import { ALL_CHARACTER_IDS } from '../shared/character.js';
 import type { HookEventName, HookPayload } from '../shared/events.js';
 
-const logger = pino({
+const loggerOptions: LoggerOptions = {
   transport: process.env.NODE_ENV === 'production' ? undefined : { target: 'pino-pretty' },
   level: process.env.LOG_LEVEL ?? 'info',
-});
+};
+const logger = pino(loggerOptions);
 
 export interface ServerOpts { host?: string; port?: number; configDir?: string }
 
 export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstance> {
-  const app = Fastify({ loggerInstance: logger });
+  const app: FastifyInstance = Fastify({ logger: loggerOptions });
   await app.register(websocket);
 
   const configDir = opts.configDir ?? path.resolve(process.cwd(), 'config');
