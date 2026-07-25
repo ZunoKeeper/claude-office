@@ -457,6 +457,7 @@ export class OfficeScene {
   private root = new Container();
   private worldLayer = new Container();
   private ready = false;
+  private destroyed = false;
   private sprites = new Map<CharacterId, CharacterSprite>();
   private seats = new Map<CharacterId, { x: number; y: number }>();
   private lastActivity = new Map<CharacterId, string | undefined>();
@@ -476,6 +477,12 @@ export class OfficeScene {
       background: 0x7ab7d9,  // sky above the office
       antialias: false,
     });
+    // React StrictMode / HMR can unmount the scene between the init() call
+    // and its resolution. Bail out cleanly if we've been destroyed since.
+    if (this.destroyed) {
+      this.app.destroy(true);
+      return;
+    }
     this.worldLayer.sortableChildren = true;
     this.root.addChild(this.worldLayer);
     this.app.stage.addChild(this.root);
@@ -652,6 +659,15 @@ export class OfficeScene {
   }
 
   destroy(): void {
-    this.app.destroy(true);
+    this.destroyed = true;
+    // If init hasn't finished, Pixi's internal fields (_cancelResize etc.)
+    // aren't set up yet and destroy() throws. Defer until init resolves —
+    // the ready check inside init() will handle the actual teardown.
+    if (!this.ready) return;
+    try {
+      this.app.destroy(true);
+    } catch {
+      // Swallow: React may unmount mid-frame; another destroy path will run.
+    }
   }
 }
