@@ -264,68 +264,52 @@ html, body {
   min-width: 0;
 }
 
-/* Sprite — chibi 8-bit character (48x48 canvas via CSS) */
-.sprite {
-  width: 48px;
-  height: 48px;
+/* Avatar frame — desk cubicle wall + floor for the sprite to stand in */
+.avatar-frame {
+  width: 60px;
+  height: 76px;
   position: relative;
   flex-shrink: 0;
-  image-rendering: pixelated;
-  background: var(--floor-2);
+  background:
+    linear-gradient(180deg, var(--floor-1) 0%, var(--floor-1) 66%, var(--floor-2) 66%, var(--floor-3) 100%);
   border: 2px solid var(--ink);
   box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
 }
 
-/* Hair (top chunk) */
-.sprite::before {
-  content: '';
-  position: absolute;
-  top: 4px; left: 12px;
-  width: 20px; height: 8px;
-  background: currentColor;
-  border: 2px solid var(--ink);
-  border-bottom: none;
-  filter: brightness(0.7);
+.pixel-avatar {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  margin-bottom: -2px;
 }
 
-/* Head (round face) */
-.sprite-face {
-  position: absolute;
-  top: 10px; left: 12px;
-  width: 20px; height: 16px;
-  background: #ffe0b8;
-  border: 2px solid var(--ink);
-  border-radius: 2px;
+/* Sprite hover — light bob (Kairosoft-style idle) */
+.desk:not(.status-off):not(.status-error) .pixel-avatar {
+  animation: bob-idle 1.4s ease-in-out infinite;
 }
+.desk.status-working .pixel-avatar { animation: bob-work 0.7s ease-in-out infinite; }
+.desk.status-thinking .pixel-avatar { animation: bob-think 1.8s ease-in-out infinite; }
+.desk.status-done .pixel-avatar { animation: bob-happy 0.5s ease-out 2; }
 
-/* Eyes */
-.sprite-face::before,
-.sprite-face::after {
-  content: '';
-  position: absolute;
-  top: 5px;
-  width: 3px; height: 3px;
-  background: var(--ink);
+@keyframes bob-idle {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
 }
-.sprite-face::before { left: 4px; }
-.sprite-face::after { right: 4px; }
-
-/* Body (torso in character tint) */
-.sprite-body {
-  position: absolute;
-  bottom: 4px; left: 10px;
-  width: 24px; height: 16px;
-  background: currentColor;
-  border: 2px solid var(--ink);
+@keyframes bob-work {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
 }
-
-/* Mouth (small smile) */
-.sprite-body::before {
-  content: '';
-  position: absolute;
-  top: -8px; left: 8px;
-  width: 4px; height: 2px;
-  background: var(--ink);
+@keyframes bob-think {
+  0%,100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-1px) rotate(-2deg); }
+  75% { transform: translateY(-1px) rotate(2deg); }
+}
+@keyframes bob-happy {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
 }
 
 .desk-title {
