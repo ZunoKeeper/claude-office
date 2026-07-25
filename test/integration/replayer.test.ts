@@ -65,4 +65,34 @@ describe('replayer', () => {
     });
     expect(res.statusCode).toBe(400);
   });
+
+  it('POST /replay/start with non-existent file returns 400 without crashing', async () => {
+    const { rules } = await loadConfig(CONFIG);
+    const store = createStateStore([...ALL_CHARACTER_IDS]);
+    const router = createRouter(rules);
+    app = Fastify();
+    registerReplayer(app, { store, router });
+    const res = await app.inject({
+      method: 'POST',
+      url: '/replay/start',
+      payload: { file: '/nonexistent/path/does-not-exist.jsonl' },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json()).toMatchObject({ ok: false });
+  });
+
+  it('POST /replay/start trims trailing whitespace from file path', async () => {
+    const { rules } = await loadConfig(CONFIG);
+    const store = createStateStore([...ALL_CHARACTER_IDS]);
+    const router = createRouter(rules);
+    app = Fastify();
+    registerReplayer(app, { store, router });
+    const res = await app.inject({
+      method: 'POST',
+      url: '/replay/start',
+      payload: { file: FIX + ' ', speed: 1000 },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toMatchObject({ ok: true, total: 3 });
+  });
 });

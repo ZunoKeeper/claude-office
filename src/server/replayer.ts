@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { createReadStream } from 'node:fs';
+import { access } from 'node:fs/promises';
 import ndjson from 'ndjson';
 import type { StateStore } from './stateStore.js';
 import type { createRouter } from './characterRouter.js';
@@ -35,12 +36,19 @@ export function registerReplayer(app: FastifyInstance, deps: Deps): void {
 
   app.post('/replay/start', async (req, reply) => {
     const body = (req.body ?? {}) as { file?: string; speed?: number };
-    if (!body?.file) {
+    const file = typeof body.file === 'string' ? body.file.trim() : '';
+    if (!file) {
       reply.code(400);
       return { ok: false, error: 'file required' };
     }
+    try {
+      await access(file);
+    } catch {
+      reply.code(400);
+      return { ok: false, error: `file not readable: ${file}` };
+    }
     abort = false;
-    state.file = body.file;
+    state.file = file;
     state.running = true;
     state.index = 0;
     state.total = 0;
@@ -48,11 +56,24 @@ export function registerReplayer(app: FastifyInstance, deps: Deps): void {
 
     const events: RawEvent[] = [];
     await new Promise<void>((resolve) => {
-      createReadStream(body.file!)
-        .pipe(ndjson.parse({ strict: false }))
+      const rs = createReadStream(file);
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        resolve();
+      };
+      rs.on('error', (err) => {
+        app.log.warn({ err, file }, 'replayer: read stream error');
+        finish();
+      });
+      rs.pipe(ndjson.parse({ strict: false }))
         .on('data', (o: unknown) => events.push(o as RawEvent))
-        .on('end', () => resolve())
-        .on('error', () => resolve());
+        .on('end', finish)
+        .on('error', (err) => {
+          app.log.warn({ err, file }, 'replayer: parse error');
+          finish();
+        });
     });
     state.total = events.length;
 
