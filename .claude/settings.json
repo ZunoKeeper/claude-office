@@ -1,0 +1,134 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -sS -X POST http://localhost:4000/hook -H 'X-CM-Event: SessionStart' -H 'Content-Type: application/json' -d @- 2>/dev/null || true",
+            "async": true,
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -sS -X POST http://localhost:4000/hook -H 'X-CM-Event: SessionEnd' -H 'Content-Type: application/json' -d @- 2>/dev/null || true",
+            "async": true,
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -sS -X POST http://localhost:4000/hook -H 'X-CM-Event: UserPromptSubmit' -H 'Content-Type: application/json' -d @- 2>/dev/null || true",
+            "async": true,
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -sS -X POST http://localhost:4000/hook -H 'X-CM-Event: SubagentStart' -H 'Content-Type: application/json' -d @- 2>/dev/null || true",
+            "async": true,
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -sS -X POST http://localhost:4000/hook -H 'X-CM-Event: SubagentStop' -H 'Content-Type: application/json' -d @- 2>/dev/null || true",
+            "async": true,
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -sS -X POST http://localhost:4000/hook -H 'X-CM-Event: PreToolUse' -H 'Content-Type: application/json' -d @- 2>/dev/null || true",
+            "async": true,
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -sS -X POST http://localhost:4000/hook -H 'X-CM-Event: PostToolUse' -H 'Content-Type: application/json' -d @- 2>/dev/null || true",
+            "async": true,
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -sS -X POST http://localhost:4000/hook -H 'X-CM-Event: PostToolUseFailure' -H 'Content-Type: application/json' -d @- 2>/dev/null || true",
+            "async": true,
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "TaskCreated": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -sS -X POST http://localhost:4000/hook -H 'X-CM-Event: TaskCreated' -H 'Content-Type: application/json' -d @- 2>/dev/null || true",
+            "async": true,
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "TaskCompleted": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -sS -X POST http://localhost:4000/hook -H 'X-CM-Event: TaskCompleted' -H 'Content-Type: application/json' -d @- 2>/dev/null || true",
+            "async": true,
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

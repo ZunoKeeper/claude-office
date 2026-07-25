@@ -13,10 +13,9 @@ import { registerHookReceiver } from './hookReceiver.js';
 import { registerWsHub } from './wsHub.js';
 import { registerReplayer } from './replayer.js';
 import { createLogTailer } from './logTailer.js';
-import { normalizeHook } from './eventNormalizer.js';
+import { createTranscriptProcessor } from './transcriptToEvents.js';
 import { installHooks } from './setup/installHooks.js';
 import { ALL_CHARACTER_IDS } from '../shared/character.js';
-import type { HookEventName, HookPayload } from '../shared/events.js';
 
 const loggerOptions: LoggerOptions = {
   transport: process.env.NODE_ENV === 'production' ? undefined : { target: 'pino-pretty' },
@@ -59,29 +58,29 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
   registerReplayer(app, { store, router });
 
   if (process.env.CM_TAIL_LOGS !== '0') {
+    const processors = new Map<string, ReturnType<typeof createTranscriptProcessor>>();
+    const agentIdToChar = new Map<string, ReturnType<typeof router.route>>();
     const tailer = createLogTailer(path.join(homedir(), '.claude'), (sid, raw) => {
-      const obj = raw as {
-        type?: string;
-        tool_use?: { name?: string; input?: unknown };
-        agent_type?: string;
-        content?: string;
-      };
-      let name: HookEventName | null = null;
-      if (obj.type === 'assistant' && obj.tool_use) name = 'PreToolUse';
-      else if (obj.type === 'tool_result') name = 'PostToolUse';
-      else if (obj.type === 'user') name = 'UserPromptSubmit';
-      if (!name) return;
-      const payload: HookPayload = {
-        session_id: sid,
-        tool_name: obj.tool_use?.name,
-        tool_input: obj.tool_use?.input,
-        prompt: obj.content,
-      };
-      const evt = normalizeHook(name, payload, Date.now());
-      if (!evt) return;
-      ws?.broadcast({ kind: 'event', event: evt });
-      const charId = router.route(evt);
-      store.applyEvent(charId, evt);
+      let proc = processors.get(sid);
+      if (!proc) {
+        proc = createTranscriptProcessor(sid);
+        processors.set(sid, proc);
+      }
+      const events = proc(raw);
+      for (const evt of events) {
+        ws?.broadcast({ kind: 'event', event: evt });
+        let charId;
+        if (evt.type === 'tool.pre' || evt.type === 'agent.start') {
+          charId = router.route(evt);
+          agentIdToChar.set(evt.agentId, charId);
+        } else if (evt.type === 'tool.post' || evt.type === 'agent.stop') {
+          charId = agentIdToChar.get(evt.agentId) ?? router.route(evt);
+          agentIdToChar.delete(evt.agentId);
+        } else {
+          charId = router.route(evt);
+        }
+        store.applyEvent(charId, evt);
+      }
     });
     await tailer.start();
     app.addHook('onClose', async () => { await tailer.stop(); });

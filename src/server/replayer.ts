@@ -1,11 +1,11 @@
 import type { FastifyInstance } from 'fastify';
+import path from 'node:path';
 import { createReadStream } from 'node:fs';
 import { access } from 'node:fs/promises';
 import ndjson from 'ndjson';
 import type { StateStore } from './stateStore.js';
 import type { createRouter } from './characterRouter.js';
-import { normalizeHook } from './eventNormalizer.js';
-import type { HookEventName, HookPayload } from '../shared/events.js';
+import { createTranscriptProcessor } from './transcriptToEvents.js';
 
 interface Deps {
   store: StateStore;
@@ -18,16 +18,6 @@ interface ReplayState {
   index: number;
   total: number;
   speed: number;
-}
-
-interface RawEvent {
-  type?: string;
-  tool_use?: { name?: string; input?: unknown };
-  session_id?: string;
-  content?: string;
-  agent_type?: string;
-  agent_id?: string;
-  tool_response?: { success?: boolean };
 }
 
 export function registerReplayer(app: FastifyInstance, deps: Deps): void {
@@ -54,7 +44,7 @@ export function registerReplayer(app: FastifyInstance, deps: Deps): void {
     state.total = 0;
     state.speed = body.speed ?? 1;
 
-    const events: RawEvent[] = [];
+    const rawRecords: unknown[] = [];
     await new Promise<void>((resolve) => {
       const rs = createReadStream(file);
       let done = false;
@@ -68,37 +58,37 @@ export function registerReplayer(app: FastifyInstance, deps: Deps): void {
         finish();
       });
       rs.pipe(ndjson.parse({ strict: false }))
-        .on('data', (o: unknown) => events.push(o as RawEvent))
+        .on('data', (o: unknown) => rawRecords.push(o))
         .on('end', finish)
         .on('error', (err) => {
           app.log.warn({ err, file }, 'replayer: parse error');
           finish();
         });
     });
-    state.total = events.length;
+    state.total = rawRecords.length;
 
     const speed = state.speed;
     const gap = Math.max(1, Math.floor(1000 / speed));
+    const fallbackSid = path.basename(file, '.jsonl');
+    const proc = createTranscriptProcessor(fallbackSid);
+    const agentIdToChar = new Map<string, ReturnType<typeof deps.router.route>>();
 
     (async () => {
-      for (const obj of events) {
+      for (const raw of rawRecords) {
         if (abort) break;
-        let name: HookEventName | null = null;
-        if (obj.type === 'assistant' && obj.tool_use) name = 'PreToolUse';
-        else if (obj.type === 'tool_result') name = 'PostToolUse';
-        else if (obj.type === 'user') name = 'UserPromptSubmit';
-        if (name) {
-          const payload: HookPayload = {
-            session_id: obj.session_id,
-            tool_name: obj.tool_use?.name,
-            tool_input: obj.tool_use?.input,
-            prompt: obj.content,
-            agent_type: obj.agent_type,
-            agent_id: obj.agent_id,
-            tool_response: obj.tool_response,
-          };
-          const evt = normalizeHook(name, payload, Date.now());
-          if (evt) deps.store.applyEvent(deps.router.route(evt), evt);
+        const events = proc(raw);
+        for (const evt of events) {
+          let charId;
+          if (evt.type === 'tool.pre' || evt.type === 'agent.start') {
+            charId = deps.router.route(evt);
+            agentIdToChar.set(evt.agentId, charId);
+          } else if (evt.type === 'tool.post' || evt.type === 'agent.stop') {
+            charId = agentIdToChar.get(evt.agentId) ?? deps.router.route(evt);
+            agentIdToChar.delete(evt.agentId);
+          } else {
+            charId = deps.router.route(evt);
+          }
+          deps.store.applyEvent(charId, evt);
         }
         state.index += 1;
         await new Promise((r) => setTimeout(r, gap));
