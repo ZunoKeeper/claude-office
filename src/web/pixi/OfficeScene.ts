@@ -1,6 +1,7 @@
 import { Application, Container, Graphics, Text } from 'pixi.js';
 import type { CharacterState } from '../../shared/character.js';
 import type { CharacterConfig } from '../../shared/config.js';
+import { screenXY } from './IsometricGrid.js';
 
 export class OfficeScene {
   private app: Application;
@@ -21,22 +22,15 @@ export class OfficeScene {
 
   private drawBackground() {
     const g = new Graphics();
-    g.rect(0, 0, 1024, 640).fill('#f3efdc');
-    // 방 구획선 (임시 사각형)
-    const rooms = [
-      { x: 40, y: 60,  w: 320, h: 200, label: '회의실' },
-      { x: 400, y: 60,  w: 300, h: 200, label: '개발실' },
-      { x: 740, y: 60,  w: 240, h: 200, label: '서버실' },
-      { x: 40, y: 320, w: 320, h: 280, label: '서고' },
-      { x: 400, y: 320, w: 300, h: 280, label: '자리' },
-      { x: 740, y: 320, w: 240, h: 200, label: '검수/디자인' },
-      { x: 740, y: 540, w: 240, h: 60,  label: '탕비실/로비' },
-    ];
-    for (const r of rooms) {
-      g.rect(r.x, r.y, r.w, r.h).stroke({ color: '#9ca3af', width: 2 });
-      const t = new Text({ text: r.label, style: { fontSize: 12, fill: '#6b7280' } });
-      t.x = r.x + 8; t.y = r.y + 6;
-      this.root.addChild(t);
+    g.rect(0, 0, 1024, 640).fill('#efe6c8');
+    const cols = 14, rows = 10;
+    for (let x = 0; x < cols; x++) {
+      for (let y = 0; y < rows; y++) {
+        const { x: sx, y: sy } = screenXY(x, y);
+        g.poly([sx, sy, sx + 32, sy + 16, sx, sy + 32, sx - 32, sy + 16])
+         .fill((x + y) % 2 === 0 ? '#e5d9a8' : '#dcc98c')
+         .stroke({ color: '#c1a55d', width: 1 });
+      }
     }
     this.root.addChild(g);
   }
