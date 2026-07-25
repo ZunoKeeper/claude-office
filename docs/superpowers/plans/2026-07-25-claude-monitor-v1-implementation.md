@@ -6,11 +6,11 @@
 
 **Architecture:** 단일 Node/Fastify 프로세스가 hook HTTP 수신 + JSONL 로그 tail + 이벤트 정규화 + 캐릭터 매핑 + WebSocket 브로드캐스트를 모두 담당. 프론트는 React + Vite + PixiJS. 상태는 백엔드 인메모리, 프론트는 순수 렌더링.
 
-**Tech Stack:** Node.js 20+, Fastify 4, TypeScript 5, React 18, Vite 5, PixiJS 8, Zustand 4, chokidar 3, ndjson 2, pino 9, vitest 2, Playwright 1 (선택).
+**Tech Stack:** Node.js 18.17+, Fastify 4, TypeScript 5, React 18, Vite 5, PixiJS 8, Zustand 4, chokidar 3, ndjson 2, pino 9, vitest 2, Playwright 1 (선택).
 
 ## Global Constraints
 
-- Node.js 20 이상 (LTS)
+- Node.js 18.17 이상
 - TypeScript strict mode 활성
 - 서버 기본 리슨: `0.0.0.0:4000` (env `PORT`, `HOST`로 오버라이드)
 - 모든 hook payload는 200 응답 (Claude Code 재시도 차단)
@@ -1708,7 +1708,7 @@ Claude Code 서브에이전트를 "중소기업 외주 개발팀" 캐릭터로 �
 
 ## 개발 (M1 완료 시점)
 
-- 요구: Node.js 20 이상
+- 요구: Node.js 18.17 이상
 - 설치: `npm install`
 - 서버 실행: `npm run dev:server` → `http://localhost:4000`
 - 헬스체크: `curl localhost:4000/health`
@@ -3630,7 +3630,7 @@ Claude Code 서브에이전트를 "중소기업 외주 개발팀" 캐릭터로 �
 
 ## 설치
 
-- 요구: Node.js 20+
+- 요구: Node.js 18.17 이상
 - `npm install`
 - `npm run build`
 - `npm start` → http://localhost:4000 접속
