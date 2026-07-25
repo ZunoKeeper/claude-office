@@ -1,12 +1,12 @@
 [
   {
-    "id": "kim-team-lead", "name": "김대리", "role": "팀장", "model": "opus",
-    "description": "메인 세션 지휘. 요구사항 파악하고 팀에 업무 분배.",
+    "id": "kim-team-lead", "name": "김대리", "role": "팀장", "model": "fable",
+    "description": "사용자 요구사항 접수와 최종 결과 회수 담당. 실제 업무 분배는 박PL에게 위임.",
     "officeSeat": { "x": 500, "y": 320 }, "spriteSheet": "characters/kim.json"
   },
   {
     "id": "park-planner", "name": "박PL", "role": "기획/아키텍트", "model": "opus",
-    "description": "구조 설계와 실행 계획 수립. Plan 에이전트 담당.",
+    "description": "팀장에게 요청받아 실행 계획 수립 후 각 팀원에게 세부 업무 분배. Plan 에이전트 담당.",
     "officeSeat": { "x": 200, "y": 160 }, "spriteSheet": "characters/park.json"
   },
   {

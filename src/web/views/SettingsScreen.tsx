@@ -11,7 +11,7 @@ interface Props {
 
 type Draft = Record<CharacterId, Pick<CharacterConfig, 'name' | 'role' | 'model' | 'description'>>;
 
-const MODEL_OPTIONS = ['opus', 'sonnet', 'haiku'];
+const CUSTOM_SENTINEL = '__custom__';
 
 function toDraft(configs: CharacterConfig[]): Draft {
   const d = {} as Draft;
@@ -39,8 +39,19 @@ export function SettingsScreen({ configs, onClose, onSaved }: Props) {
   const [draft, setDraft] = useState<Draft>(() => toDraft(configs));
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+  const [modelOptions, setModelOptions] = useState<string[]>(['fable', 'opus', 'sonnet', 'haiku']);
+  const [customMode, setCustomMode] = useState<Partial<Record<CharacterId, boolean>>>({});
 
   useEffect(() => { setDraft(toDraft(configs)); }, [configs]);
+
+  useEffect(() => {
+    fetch('/config/models')
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data?.models) && data.models.length > 0) setModelOptions(data.models);
+      })
+      .catch(() => { /* keep fallback */ });
+  }, []);
 
   function update(id: CharacterId, key: keyof Draft[CharacterId], value: string) {
     setDraft((prev) => ({ ...prev, [id]: { ...prev[id], [key]: value } }));
@@ -106,11 +117,29 @@ export function SettingsScreen({ configs, onClose, onSaved }: Props) {
                              onChange={(e) => update(cfg.id, 'role', e.target.value)} />
                     </label>
                     <label>모델
-                      <select value={d.model}
-                              onChange={(e) => update(cfg.id, 'model', e.target.value)}>
-                        <option value="">(미지정)</option>
-                        {MODEL_OPTIONS.map((m) => <option key={m} value={m}>{m}</option>)}
-                      </select>
+                      {customMode[cfg.id] ? (
+                        <input type="text" value={d.model}
+                               placeholder="예: claude-opus-4-7"
+                               onChange={(e) => update(cfg.id, 'model', e.target.value)}
+                               onBlur={() => {
+                                 if (!d.model) setCustomMode({ ...customMode, [cfg.id]: false });
+                               }} />
+                      ) : (
+                        <select
+                          value={modelOptions.includes(d.model ?? '') || !d.model ? d.model : CUSTOM_SENTINEL}
+                          onChange={(e) => {
+                            if (e.target.value === CUSTOM_SENTINEL) {
+                              setCustomMode({ ...customMode, [cfg.id]: true });
+                              update(cfg.id, 'model', '');
+                            } else {
+                              update(cfg.id, 'model', e.target.value);
+                            }
+                          }}>
+                          <option value="">(미지정)</option>
+                          {modelOptions.map((m) => <option key={m} value={m}>{m}</option>)}
+                          <option value={CUSTOM_SENTINEL}>직접 입력…</option>
+                        </select>
+                      )}
                     </label>
                   </div>
                   <label className="settings-desc-label">설명

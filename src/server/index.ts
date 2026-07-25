@@ -69,6 +69,11 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
 
   app.get('/config/overrides-path', async () => ({ path: overridesPath() }));
 
+  app.get('/config/models', async () => ({
+    // Curated Claude Code aliases. Users can also enter a custom string in Settings.
+    models: ['fable', 'opus', 'sonnet', 'haiku'],
+  }));
+
   app.post<{ Querystring: { scope?: 'user' | 'project' }; Body: { host?: string } }>(
     '/setup/install-hooks',
     async (req) => {

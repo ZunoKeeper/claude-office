@@ -38,7 +38,7 @@ Kairosoft *Game Dev Story* 톤의 8비트 레트로 픽셀 아트 UI로 팀원�
 ## 팀 설정 (⚙ SETUP)
 
 - 상단 우측 **⚙ SETUP** 버튼 → 모달에서 각 캐릭터의 **이름 · 역할 · 모델 · 설명** 편집
-- Model 드롭다운: `opus` / `sonnet` / `haiku` / (미지정)
+- Model 드롭다운: 서버 `/config/models` 응답 기준 (`fable` / `opus` / `sonnet` / `haiku` / 미지정) + **직접 입력**으로 임의 문자열 사용 가능 (예: `claude-opus-4-7`)
 - 저장 시 `PATCH /config/characters/:id`로 즉시 반영 (재기동 불필요)
 - 오버라이드는 `~/.claude-office/overrides.json`에 지속 (base config는 손대지 않음)
 - 초기화하려면 위 파일 삭제 후 새로고침
@@ -61,8 +61,8 @@ Kairosoft *Game Dev Story* 톤의 8비트 레트로 픽셀 아트 UI로 팀원�
 
 | 캐릭터 | 역할 | 기본 모델 | 디자인 포인트 |
 |---|---|---|---|
-| 김대리 | 팀장 (Main) | opus | 보라 사이드파팅 헤어, 안경, 흰 셔츠 + 빨간 넥타이 |
-| 박PL | 기획/아키텍트 (Plan) | opus | 파랑 스파이키 헤어, 견장 있는 재킷 |
+| 김대리 | 팀장 (Main) | fable | 사용자 요구사항 접수·최종 회수만. 실행은 PL에게 위임 |
+| 박PL | 기획/아키텍트 (Plan) | opus | 팀장 지시 접수 → 팀원에게 세부 분배 |
 | 이대리 | 자료조사 (Explore) | sonnet | 청록 헝클어진 헤어, 큰 안경, 클립보드 |
 | 유대리 | 개발자 (Write/Edit) | opus | 오렌지 후드, 검은 헤드폰 |
 | 한주임 | QA (test 툴) | sonnet | 자홍 밥 컷, 안경, 서류 클립보드 |
