@@ -20,16 +20,10 @@ export interface SettingsJson {
   [k: string]: unknown;
 }
 
-// Hook commands run on the machine they were installed on, so the install-time
-// platform decides the shell dialect: cmd on Windows, POSIX sh elsewhere.
-export function claudeMonitorCommand(
-  endpoint: string,
-  eventName: string,
-  platform: NodeJS.Platform = process.platform,
-): string {
-  if (platform === 'win32') {
-    return `curl -sS -X POST ${endpoint} -H "X-CM-Event: ${eventName}" -H "Content-Type: application/json" -d @- 2>nul`;
-  }
+// Claude Code는 Windows에서도 훅을 Git Bash(POSIX sh)로 실행하므로 전 플랫폼
+// POSIX 문법 하나만 쓴다. cmd 문법(2>nul)을 쓰면 POSIX 셸이 `nul`을 파일명으로
+// 해석해 프로젝트 루트에 nul 파일을 만들어 버린다.
+export function claudeMonitorCommand(endpoint: string, eventName: string): string {
   return `curl -sS -X POST ${endpoint} -H 'X-CM-Event: ${eventName}' -H 'Content-Type: application/json' -d @- 2>/dev/null || true`;
 }
 
@@ -37,7 +31,6 @@ export function mergeHooks(
   existing: unknown,
   endpoint: string,
   events: string[],
-  platform: NodeJS.Platform = process.platform,
 ): SettingsJson {
   const src: SettingsJson = (existing && typeof existing === 'object') ? { ...(existing as SettingsJson) } : {};
   const out: SettingsJson = { ...src, hooks: { ...(src.hooks ?? {}) } };
@@ -45,7 +38,7 @@ export function mergeHooks(
   // 우리(claude-monitor)가 설치한 훅 중 더 이상 유효하지 않은 것을 먼저 제거:
   // 커맨드 포맷이 바뀐 구버전(X-CM-Event 마커는 있으나 현재 canonical 커맨드와 다름),
   // 그리고 설치 대상에서 빠진 이벤트에 남아 있는 것. 사용자 훅은 건드리지 않는다.
-  const canonical = new Set(events.map((ev) => claudeMonitorCommand(endpoint, ev, platform)));
+  const canonical = new Set(events.map((ev) => claudeMonitorCommand(endpoint, ev)));
   for (const [key, groups] of Object.entries(out.hooks!)) {
     const pruned = groups
       .map((g) => ({
@@ -59,7 +52,7 @@ export function mergeHooks(
 
   for (const ev of events) {
     const groups: HookGroup[] = [...(out.hooks![ev] ?? [])];
-    const cmd = claudeMonitorCommand(endpoint, ev, platform);
+    const cmd = claudeMonitorCommand(endpoint, ev);
     const exists = groups.some((g) => g.hooks.some((h) => h.command === cmd));
     if (exists) continue;
     let firstEmpty = groups.find((g) => !g.matcher);

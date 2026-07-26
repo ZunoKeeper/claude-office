@@ -51,7 +51,7 @@ async function doctor() {
     `port 5173: ${(await portInUse(5173)) ? '사용 중 — Vite가 이미 떠 있거나 다른 프로세스 점유' : '비어 있음'}`,
   ];
   if (process.platform === 'win32') {
-    lines.push('note     : Windows에서는 hook 커맨드가 cmd 문법(2>nul)으로 설치됩니다');
+    lines.push('note     : hook 커맨드는 POSIX(sh) 문법으로 설치됩니다 — Claude Code가 Windows에서도 Git Bash로 훅을 실행');
   }
   console.log('\n=== doctor ===');
   for (const l of lines) console.log('  ' + l);

@@ -50,23 +50,39 @@ describe('stale claude-monitor hook pruning', () => {
   const endpoint = 'http://localhost:4000/hook';
 
   it('removes outdated CM commands but keeps user hooks', () => {
-    const oldPosix = "curl -sS -X POST http://localhost:4000/hook -H 'X-CM-Event: SessionStart' -H 'Content-Type: application/json' -d @- 2>/dev/null || true";
+    const outdated = "curl -sS -X POST http://localhost:4000/hook -H 'X-CM-Event: SessionStart' -d @- 2>/dev/null";
     const existing = {
       hooks: {
         SessionStart: [{
           matcher: '',
           hooks: [
-            { type: 'command' as const, command: oldPosix },
+            { type: 'command' as const, command: outdated },
             { type: 'command' as const, command: 'echo user-hook' },
           ],
         }],
       },
     };
-    const out = mergeHooks(existing, endpoint, ['SessionStart'], 'win32');
+    const out = mergeHooks(existing, endpoint, ['SessionStart']);
     const cmds = out.hooks!.SessionStart.flatMap((g) => g.hooks.map((h) => h.command));
     expect(cmds).toContain('echo user-hook');
     expect(cmds.filter((c) => c.includes('X-CM-Event')))
-      .toEqual([claudeMonitorCommand(endpoint, 'SessionStart', 'win32')]);
+      .toEqual([claudeMonitorCommand(endpoint, 'SessionStart')]);
+  });
+
+  it('replaces legacy 2>nul (cmd-dialect) hooks — POSIX 셸에서 nul 파일을 만드는 구버전', () => {
+    const legacyWin = 'curl -sS -X POST http://localhost:4000/hook -H "X-CM-Event: SessionStart" -H "Content-Type: application/json" -d @- 2>nul';
+    const existing = {
+      hooks: {
+        SessionStart: [{
+          matcher: '',
+          hooks: [{ type: 'command' as const, command: legacyWin }],
+        }],
+      },
+    };
+    const out = mergeHooks(existing, endpoint, ['SessionStart']);
+    const cmds = out.hooks!.SessionStart.flatMap((g) => g.hooks.map((h) => h.command));
+    expect(cmds).toEqual([claudeMonitorCommand(endpoint, 'SessionStart')]);
+    expect(cmds[0]).not.toContain('2>nul');
   });
 
   it('drops CM hooks registered for events no longer installed', () => {
@@ -74,36 +90,29 @@ describe('stale claude-monitor hook pruning', () => {
       hooks: {
         SessionEnd: [{
           matcher: '',
-          hooks: [{ type: 'command' as const, command: claudeMonitorCommand(endpoint, 'SessionEnd', 'win32') }],
+          hooks: [{ type: 'command' as const, command: claudeMonitorCommand(endpoint, 'SessionEnd') }],
         }],
       },
     };
-    const out = mergeHooks(existing, endpoint, ['SessionStart'], 'win32');
+    const out = mergeHooks(existing, endpoint, ['SessionStart']);
     expect(out.hooks!.SessionEnd).toBeUndefined();
     expect(out.hooks!.SessionStart).toBeDefined();
   });
 });
 
-describe('claudeMonitorCommand platform variants', () => {
+describe('claudeMonitorCommand', () => {
   const endpoint = 'http://localhost:4000/hook';
 
-  it('generates POSIX command on linux', () => {
-    const cmd = claudeMonitorCommand(endpoint, 'SessionStart', 'linux');
+  it('generates a POSIX sh command on every platform (훅은 Windows에서도 Git Bash로 실행됨)', () => {
+    const cmd = claudeMonitorCommand(endpoint, 'SessionStart');
     expect(cmd).toContain("-H 'X-CM-Event: SessionStart'");
     expect(cmd).toContain('2>/dev/null || true');
+    expect(cmd).not.toContain('2>nul');
   });
 
-  it('generates cmd-compatible command on win32', () => {
-    const cmd = claudeMonitorCommand(endpoint, 'SessionStart', 'win32');
-    expect(cmd).toContain('-H "X-CM-Event: SessionStart"');
-    expect(cmd).toContain('2>nul');
-    expect(cmd).not.toContain("'");
-    expect(cmd).not.toContain('|| true');
-  });
-
-  it('mergeHooks embeds platform-appropriate command', () => {
-    const out = mergeHooks({}, endpoint, ['SessionStart'], 'win32');
+  it('mergeHooks embeds the POSIX command', () => {
+    const out = mergeHooks({}, endpoint, ['SessionStart']);
     const cmd = out.hooks!.SessionStart[0].hooks[0].command;
-    expect(cmd).toContain('2>nul');
+    expect(cmd).toContain('2>/dev/null || true');
   });
 });
