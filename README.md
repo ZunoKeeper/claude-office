@@ -6,10 +6,15 @@ Kairosoft *Game Dev Story* 톤의 8비트 레트로 UI로 팀원들의 실시간
 
 ## 설치
 
-- 요구: Node.js 18.17 이상
-- `npm install`
-- `npm run build`
-- `npm start` → http://localhost:4000 접속
+clone 직후 아래 한 번이면 Volta 설치 → Node 22 pin → 의존성 설치 → 빌드 → 테스트 → 환경 진단까지 완료됩니다.
+
+- **Linux/macOS**: `bash scripts/setup.sh`
+- **Windows**: `powershell -ExecutionPolicy Bypass -File scripts/setup.ps1`
+
+이미 Volta(또는 Node 18.17+)가 있다면 `npm run setup`만으로 동일합니다.
+환경 점검만 다시 보려면 `npm run doctor`.
+
+실행: `npm start` → http://localhost:4000 접속
 
 ## 개발 모드 (라이브 리로드)
 
