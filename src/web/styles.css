@@ -380,6 +380,25 @@ html, body {
   overflow-y: auto;
 }
 
+/* 캐릭터 이름표 — 캔버스 밖 HTML 오버레이. 씬이 스케일돼도 글씨 크기 고정 */
+.office-nametag {
+  position: absolute;
+  visibility: hidden; /* 첫 프레임 좌표 수신 전 깜빡임 방지 */
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+  z-index: 5;
+  font-family: 'DotGothic16', monospace;
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
+  color: var(--ink);
+  background: rgba(255, 242, 196, 0.92);
+  border: 1px solid var(--ink);
+  border-radius: 3px;
+  padding: 1px 5px;
+  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.25);
+}
+
 /* 좌우 2단 — 왼쪽 고정폭 라벨 컬럼, 오른쪽 칩 영역 (줄바꿈은 오른쪽 안에서만) */
 .cap-row {
   display: flex;

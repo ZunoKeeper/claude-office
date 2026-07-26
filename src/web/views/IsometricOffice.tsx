@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { OfficeScene } from '../pixi/OfficeScene.js';
+import { PIXEL_SCALE } from '../pixi/CharacterSprite.js';
+import { SPRITE_H } from '../pixi/sprites/types.js';
 import { useCharacterStore } from '../store/characterStore.js';
 import { ALL_CHARACTER_IDS, type CharacterId, type CharacterState } from '../../shared/character.js';
 import type { CharacterConfig, SeatDirection, SeatPose } from '../../shared/config.js';
@@ -43,6 +45,9 @@ export function IsometricOffice({ configs }: { configs: CharacterConfig[] }) {
   const [editMode, setEditMode] = useState(false);
   const [selectedId, setSelectedId] = useState<CharacterId | null>(null);
   const [fit, setFit] = useState({ scale: 1, offsetX: 0 });
+  const fitRef = useRef(fit);
+  fitRef.current = fit;
+  const nametagRefs = useRef(new Map<CharacterId, HTMLDivElement>());
 
   // 폭·높이 중 더 빡빡한 쪽에 맞춰 스케일 — 스크롤 없이 항상 사무실 전체가 보인다.
   // 가용 높이 = app-main 높이 - 캐릭터 패널 높이 - 상하 패딩.
@@ -73,6 +78,18 @@ export function IsometricOffice({ configs }: { configs: CharacterConfig[] }) {
     const scene = new OfficeScene(canvasRef.current);
     sceneRef.current = scene;
     scene.onSelectionChange(setSelectedId);
+    // 이름표는 캔버스 밖 HTML이라 스케일과 무관하게 글씨 크기가 고정된다.
+    // 매 프레임 스프라이트 논리 좌표를 받아 DOM을 직접 이동(리렌더 없음).
+    scene.onFramePositions((positions) => {
+      const { scale, offsetX } = fitRef.current;
+      for (const p of positions) {
+        const el = nametagRefs.current.get(p.id);
+        if (!el) continue;
+        el.style.left = `${p.x * scale + offsetX}px`;
+        el.style.top = `${(p.y - SPRITE_H * PIXEL_SCALE - 2) * scale}px`;
+        el.style.visibility = 'visible';
+      }
+    });
     return () => { scene.destroy(); sceneRef.current = null; };
   }, []);
 
@@ -118,6 +135,20 @@ export function IsometricOffice({ configs }: { configs: CharacterConfig[] }) {
 
         <OfficeOverlay configs={configs} />
       </div>
+
+      {/* 이름표 — 스케일 밖 HTML이라 항상 고정 크기로 선명하게 보인다 */}
+      {configs.map((c) => (
+        <div
+          key={c.id}
+          className="office-nametag"
+          ref={(el) => {
+            if (el) nametagRefs.current.set(c.id, el);
+            else nametagRefs.current.delete(c.id);
+          }}
+        >
+          {c.name}
+        </div>
+      ))}
 
       {/* 편집 버튼은 스케일 밖 — 확대해도 UI 크기가 일정하다 */}
       <div style={{

@@ -41,6 +41,7 @@ export class OfficeScene {
   private editMode = false;
   private dragging: { sprite: CharacterSprite; offsetX: number; offsetY: number } | null = null;
   private onSelectCallback: ((id: CharacterId | null) => void) | null = null;
+  private onFrameCallback: ((positions: Array<{ id: CharacterId; x: number; y: number }>) => void) | null = null;
   private sprites = new Map<CharacterId, CharacterSprite>();
   private seats = new Map<CharacterId, { x: number; y: number }>();
   private lastActivity = new Map<CharacterId, string | undefined>();
@@ -82,6 +83,12 @@ export class OfficeScene {
         // render on top, matching how the baked isometric art layers.
         s.zIndex = Math.round(s.y) * 10 + Z_KIND_CHARACTER;
       }
+      // HTML 이름표 오버레이가 스프라이트를 따라오도록 매 프레임 논리 좌표 통지
+      if (this.onFrameCallback && this.sprites.size > 0) {
+        this.onFrameCallback(
+          [...this.sprites.values()].map((s) => ({ id: s.characterId, x: s.x, y: s.y })),
+        );
+      }
     });
     this.ready = true;
     if (this.pendingSetCharacters) {
@@ -120,7 +127,7 @@ export class OfficeScene {
       const seatDir = cfg.seatDirection ?? 'S';
       const seatPose = cfg.seatPose ?? 'stand';
       if (!sprite) {
-        sprite = new CharacterSprite(s.id, cfg.name);
+        sprite = new CharacterSprite(s.id);
         sprite.x = seat.x;
         sprite.y = seat.y;
         sprite.worldPos = { x: seat.x, y: seat.y };
@@ -189,6 +196,12 @@ export class OfficeScene {
 
   onSelectionChange(cb: (id: CharacterId | null) => void): void {
     this.onSelectCallback = cb;
+  }
+
+  /** 매 프레임 스프라이트의 논리 좌표(920×510 기준, 발끝 앵커)를 통지한다.
+   *  HTML 이름표 오버레이가 걷는 캐릭터를 따라가는 데 쓰인다. */
+  onFramePositions(cb: (positions: Array<{ id: CharacterId; x: number; y: number }>) => void): void {
+    this.onFrameCallback = cb;
   }
 
   /** Optimistic update so the browser reflects a direction change immediately;

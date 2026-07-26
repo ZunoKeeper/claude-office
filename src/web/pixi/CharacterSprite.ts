@@ -7,7 +7,7 @@ import { buildEmoteTextures, type EmoteId } from './sprites/emotes.js';
 import type { Direction, PoseKey } from './sprites/types.js';
 import { SPRITE_H } from './sprites/types.js';
 
-const PIXEL_SCALE = 3;
+export const PIXEL_SCALE = 3;
 
 const WALK_FRAME_MS = 160;
 const TYPE_FRAME_MS = 220;
@@ -55,7 +55,6 @@ export class CharacterSprite extends Container {
 
   private body: Sprite;
   private emoteSprite: Sprite;
-  private nameLabel: Text;
 
   // Speech bubble — rounded rect + tail + text. Positioned above the emote.
   private bubbleContainer = new Container();
@@ -88,7 +87,9 @@ export class CharacterSprite extends Container {
     return this.id;
   }
 
-  constructor(private id: CharacterId, name: string) {
+  // 이름표는 캔버스 밖 HTML 오버레이(IsometricOffice)가 그린다 — 캔버스가
+  // CSS 스케일될 때 글씨가 흐려지지 않도록 고정 크기로 유지하기 위함.
+  constructor(private id: CharacterId) {
     super();
     this.atlas = buildAtlas();
     this.emoteTextures = buildEmoteTextures();
@@ -104,20 +105,6 @@ export class CharacterSprite extends Container {
     this.emoteSprite.visible = false;
     this.emoteSprite.y = -SPRITE_H * PIXEL_SCALE - 10;
     this.addChild(this.emoteSprite);
-
-    this.nameLabel = new Text({
-      text: name,
-      style: {
-        fontFamily: 'DotGothic16, monospace',
-        fontSize: 10,
-        fill: 0x1a1a1a,
-        stroke: { color: 0xfff2c4, width: 2 },
-      },
-    });
-    // Name floats just above the head (sprite body top is at y=-SPRITE_H*PIXEL_SCALE).
-    this.nameLabel.anchor.set(0.5, 1);
-    this.nameLabel.y = -SPRITE_H * PIXEL_SCALE - 2;
-    this.addChild(this.nameLabel);
 
     this.bubbleText = new Text({
       text: '',
