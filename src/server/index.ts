@@ -21,6 +21,7 @@ import { collectCapabilities } from './env/capabilities.js';
 import { loadOverrides, saveOverrides, applyOverrides, type CharacterOverrides, overridesPath } from './setup/overrides.js';
 import { loadDestinationsBase, loadDestinationOverrides, saveDestinationOverrides, applyDestinationOverrides } from './setup/destinations.js';
 import { loadWaypoints, saveWaypoints, sanitizePoints } from './setup/waypoints.js';
+import { loadSprites, saveSprites, sanitizeAppearanceDoc } from './setup/sprites.js';
 import { ALL_CHARACTER_IDS, type CharacterId } from '../shared/character.js';
 import type { DomainEvent } from '../shared/events.js';
 
@@ -123,6 +124,23 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
       return { ok: true, target, destination: destinations.find((d) => d.id === dest.id) };
     },
   );
+
+  // 캐릭터 외모(스프라이트 조합) — 설정창 조합 에디터 저장분
+  let sprites = await loadSprites();
+
+  app.get('/config/sprites', async () => sprites);
+
+  app.put<{ Body: unknown }>('/config/sprites', async (req, reply) => {
+    const doc = sanitizeAppearanceDoc(req.body);
+    if (doc === null) {
+      reply.code(400);
+      return { ok: false, error: 'invalid appearance document' };
+    }
+    sprites = doc;
+    const target = await saveSprites(sprites);
+    ws.broadcast({ kind: 'configUpdated' });
+    return { ok: true, target };
+  });
 
   // 캐릭터×목적지별 걷기 경유점. 자리→경유점들→목적지 순서로 걷는다.
   const waypoints = await loadWaypoints();
