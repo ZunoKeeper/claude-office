@@ -8,7 +8,8 @@ export function normalizeHook(name: HookEventName, p: HookPayload, ts: number): 
     case 'SessionStart':
       if (!sid) return null;
       return { type: 'session.start', ts, sessionId: sid, cwd: p.cwd ?? '' };
-    case 'SessionEnd':
+    case 'Stop':
+      // 현행 Claude Code에는 SessionEnd 훅이 없다 — 턴 종료(Stop)를 세션 휴지 신호로 사용
       return { type: 'session.stop', ts, sessionId: sid! };
     case 'UserPromptSubmit':
       return { type: 'user.prompt', ts, sessionId: sid!, text: String(p.prompt ?? '') };

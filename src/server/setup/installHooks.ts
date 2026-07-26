@@ -41,6 +41,22 @@ export function mergeHooks(
 ): SettingsJson {
   const src: SettingsJson = (existing && typeof existing === 'object') ? { ...(existing as SettingsJson) } : {};
   const out: SettingsJson = { ...src, hooks: { ...(src.hooks ?? {}) } };
+
+  // 우리(claude-monitor)가 설치한 훅 중 더 이상 유효하지 않은 것을 먼저 제거:
+  // 커맨드 포맷이 바뀐 구버전(X-CM-Event 마커는 있으나 현재 canonical 커맨드와 다름),
+  // 그리고 설치 대상에서 빠진 이벤트에 남아 있는 것. 사용자 훅은 건드리지 않는다.
+  const canonical = new Set(events.map((ev) => claudeMonitorCommand(endpoint, ev, platform)));
+  for (const [key, groups] of Object.entries(out.hooks!)) {
+    const pruned = groups
+      .map((g) => ({
+        ...g,
+        hooks: g.hooks.filter((h) => !h.command.includes('X-CM-Event') || canonical.has(h.command)),
+      }))
+      .filter((g) => g.hooks.length > 0);
+    if (pruned.length === 0) delete out.hooks![key];
+    else out.hooks![key] = pruned;
+  }
+
   for (const ev of events) {
     const groups: HookGroup[] = [...(out.hooks![ev] ?? [])];
     const cmd = claudeMonitorCommand(endpoint, ev, platform);
@@ -57,9 +73,11 @@ export function mergeHooks(
   return out;
 }
 
+// 현행 Claude Code 훅 이벤트 목록(code.claude.com/docs/en/hooks)에 존재하는 것만 사용.
+// SessionEnd는 존재하지 않아 Stop(턴 종료)으로 대체.
 export const DEFAULT_EVENTS = [
   'SessionStart',
-  'SessionEnd',
+  'Stop',
   'UserPromptSubmit',
   'SubagentStart',
   'SubagentStop',

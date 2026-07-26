@@ -24,16 +24,29 @@ describe('characterRouter', () => {
     expect(router.route({ type: 'agent.start', ts: 0, sessionId: 's', agentType: 'Explore', agentId: 'a' })).toBe('planner-researcher');
   });
 
-  it('agent.start(tester) → tester (exact-name repo subagent)', () => {
-    expect(router.route({ type: 'agent.start', ts: 0, sessionId: 's', agentType: 'tester', agentId: 'a' })).toBe('tester');
+  it('agent.start(claude-code-guide) → docs-manager (내장 가이드 에이전트)', () => {
+    expect(router.route({ type: 'agent.start', ts: 0, sessionId: 's', agentType: 'claude-code-guide', agentId: 'a' })).toBe('docs-manager');
   });
 
-  it('agent.start(debugger) → debugger (exact-name repo subagent)', () => {
-    expect(router.route({ type: 'agent.start', ts: 0, sessionId: 's', agentType: 'debugger', agentId: 'a' })).toBe('debugger');
+  it('agent.start(qa-verifier) → tester (관측되는 플러그인 에이전트)', () => {
+    expect(router.route({ type: 'agent.start', ts: 0, sessionId: 's', agentType: 'qa-verifier', agentId: 'a' })).toBe('tester');
+  });
+
+  it('agent.start(stabilizer) → debugger (관측되는 플러그인 에이전트)', () => {
+    expect(router.route({ type: 'agent.start', ts: 0, sessionId: 's', agentType: 'stabilizer', agentId: 'a' })).toBe('debugger');
+  });
+
+  it('agent.start(statusline-setup) → kim-team-lead (명시 매핑)', () => {
+    expect(router.route({ type: 'agent.start', ts: 0, sessionId: 's', agentType: 'statusline-setup', agentId: 'a' })).toBe('kim-team-lead');
   });
 
   it('agent.start(unknown type) → kim-team-lead (fallback)', () => {
-    expect(router.route({ type: 'agent.start', ts: 0, sessionId: 's', agentType: 'statusline-setup', agentId: 'a' })).toBe('kim-team-lead');
+    expect(router.route({ type: 'agent.start', ts: 0, sessionId: 's', agentType: 'mystery-agent', agentId: 'a' })).toBe('kim-team-lead');
+  });
+
+  it('제거된 고아 정의(tester/debugger 정확명)는 폴백으로 라우팅', () => {
+    expect(router.route({ type: 'agent.start', ts: 0, sessionId: 's', agentType: 'tester', agentId: 'a' })).toBe('kim-team-lead');
+    expect(router.route({ type: 'agent.start', ts: 0, sessionId: 's', agentType: 'docs-manager', agentId: 'a' })).toBe('kim-team-lead');
   });
 
   it('agent.start(general-purpose) → code-reviewer', () => {

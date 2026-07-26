@@ -56,7 +56,12 @@ Main 세션 + 5개 스페셜리스트로 구성. 각 캐릭터는 실제 라우�
 | **테스터** | Test Runner / Analyst | `Bash`에서 pytest·jest·vitest·go test·cargo test·mocha·npm test 등 |
 | **디버거** | Log / Error Analyst | `Bash`에서 grep·rg·tail·less·head·journalctl·dmesg / `*.log` 파일 Read |
 | **리뷰어** | Code Reviewer | `general-purpose` 서브에이전트 (SDD 리뷰 워크플로 포함) |
-| **문서담당** | Docs Manager | `.md`·`.mdx`·`.rst` 파일 Write/Edit |
+| **문서담당** | Docs Manager | `.md`·`.mdx`·`.rst` 파일 Write/Edit / `claude-code-guide` 서브에이전트 |
+
+서브에이전트 타입 → 캐릭터 매핑은 `src/server/characterRouter.ts`의 `AGENT_TYPE_MAP`에서 관리합니다.
+현행 내장 5종(Plan/Explore/general-purpose/claude-code-guide/statusline-setup)과 이 머신에서
+관측되는 플러그인 타입(tech-lead/qa-verifier/stabilizer/feature-dev/ux-designer 등)을 성격 기준으로
+배정하며, 매핑에 없는 타입은 Main 세션 캐릭터로 폴백됩니다.
 
 카드 표시 (`.desk`):
 - 상단: 아바타 + 이름 + **live-dot** (최근 1.5s 이내 업데이트 시 반짝임) + 역할 + **모델 뱃지**

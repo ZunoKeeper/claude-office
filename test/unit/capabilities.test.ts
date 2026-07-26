@@ -59,8 +59,9 @@ describe('routerAgentTypes', () => {
     expect(plan.characterId).toBe('planner-researcher');
     expect(plan.builtin).toBe(true);
     expect(plan.source).toBe('router');
-    const tester = types.find((t) => t.type === 'tester')!;
-    expect(tester.builtin).toBe(false);
+    const qa = types.find((t) => t.type === 'qa-verifier')!;
+    expect(qa.builtin).toBe(false);
+    expect(qa.characterId).toBe('tester');
     expect(types.length).toBeGreaterThanOrEqual(8);
   });
 });

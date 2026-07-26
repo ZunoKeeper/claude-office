@@ -12,7 +12,7 @@ export type DomainEvent =
   | { type: 'mcp.result';      ts: number; sessionId: string; serverName: string; toolName: string; success: boolean };
 
 export type HookEventName =
-  | 'SessionStart' | 'SessionEnd'
+  | 'SessionStart' | 'Stop'
   | 'UserPromptSubmit'
   | 'SubagentStart' | 'SubagentStop'
   | 'PreToolUse' | 'PostToolUse' | 'PostToolUseFailure'

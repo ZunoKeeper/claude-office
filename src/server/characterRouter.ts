@@ -2,17 +2,24 @@ import type { CharacterId } from '../shared/character.js';
 import type { ActivityRule } from '../shared/config.js';
 import type { DomainEvent } from '../shared/events.js';
 
+// 서브에이전트 타입 → 담당 캐릭터. 성격(하는 일) 기준으로 매칭한다.
+// 이 머신의 ~/.claude 환경(내장 5종 + transcript에서 관측되는 플러그인 타입)과
+// 동기화되어야 함 — .claude/agents 디렉터리는 user/project 어디에도 없으므로
+// 정확명(exact-name) repo 서브에이전트 항목은 두지 않는다.
 export const AGENT_TYPE_MAP: Record<string, CharacterId> = {
-  // Anthropic built-in / project-agnostic types
-  Plan: 'planner-researcher',
-  Explore: 'planner-researcher',
-  'general-purpose': 'code-reviewer',
-  // Exact-name matches for repo subagents defined under .claude/agents/
-  'planner-researcher': 'planner-researcher',
-  tester: 'tester',
-  debugger: 'debugger',
-  'code-reviewer': 'code-reviewer',
-  'docs-manager': 'docs-manager',
+  // Claude Code 내장 (code.claude.com/docs/en/subagents)
+  Plan: 'planner-researcher',            // 계획 수립
+  Explore: 'planner-researcher',         // 코드 탐색
+  'general-purpose': 'code-reviewer',    // SDD 리뷰 워크플로 등 범용 멀티스텝
+  'claude-code-guide': 'docs-manager',   // 문서/가이드 Q&A
+  'statusline-setup': 'kim-team-lead',   // 설정 헬퍼 — 메인 폴백에 명시
+  // 플러그인/하네스 제공 — 이 머신 transcript에서 실제 관측되는 타입
+  claude: 'kim-team-lead',               // 범용 워커 (FleetView 기본)
+  'tech-lead': 'planner-researcher',     // 설계 판단
+  'qa-verifier': 'tester',               // 검증/QA
+  stabilizer: 'debugger',                // 안정화/오류 대응
+  'feature-dev': 'kim-team-lead',        // 기능 구현 (메인 구현 라인)
+  'ux-designer': 'docs-manager',         // 산출물/디자인 문서
 };
 
 export const BUILTIN_AGENT_TYPES: ReadonlySet<string> = new Set(['Plan', 'Explore', 'general-purpose']);

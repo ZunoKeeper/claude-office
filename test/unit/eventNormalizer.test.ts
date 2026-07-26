@@ -34,4 +34,9 @@ describe('normalizeHook', () => {
   it('missing session_id returns null', () => {
     expect(normalizeHook('PreToolUse', {}, ts)).toBeNull();
   });
+
+  it('Stop → session.stop (현행 Claude Code에 SessionEnd 훅은 없음)', () => {
+    const e = normalizeHook('Stop', { session_id: 'sess-abc' }, ts);
+    expect(e).toEqual({ type: 'session.stop', ts, sessionId: 'sess-abc' });
+  });
 });
