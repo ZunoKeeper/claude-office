@@ -1,4 +1,4 @@
-# claude-office 초기 셋업 (Windows).
+﻿# claude-office 초기 셋업 (Windows).
 # Volta 확보 → Node 22 pin → 공용 셋업(scripts/setup.mjs) 실행.
 $ErrorActionPreference = 'Stop'
 Set-Location (Join-Path $PSScriptRoot '..')
