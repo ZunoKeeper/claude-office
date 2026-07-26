@@ -27,16 +27,26 @@ clone 직후 아래 한 번이면 Volta 설치 → Node 22 pin → 의존성 설
 ## 첫 실행
 
 1. 브라우저 접속 → 온보딩 화면 (▶ NEW GAME)
-2. "전역" 또는 "현재 프로젝트" 선택 → 자동 설치 (curl로 hook 커맨드를 settings.json에 병합)
+2. "전역" 또는 "현재 프로젝트" 선택 → 자동 설치 (curl로 hook 커맨드를 settings.json에 병합).
+   훅 커맨드는 전 플랫폼 POSIX(sh) 문법 — Claude Code가 Windows에서도 Git Bash로 훅을 실행합니다.
+   재설치 시 구버전 커맨드(cmd 문법 `2>nul` 등)는 자동 교체됩니다.
 3. 이후 Claude Code 세션의 hook 이벤트가 실시간 반영. 트랜스크립트 tail은 기본 활성이므로 진행 중인 세션의 새 활동도 즉시 파이프에 흘러들어옴 (서버 기동 이전의 과거 히스토리는 재생하지 않음 — 중단된 옛 세션의 고아 이벤트 유입 방지).
 
-## 뷰 전환
+## 화면 구성 (단일 통합 뷰)
 
-- 상단 [GRID | OFFICE] 토글
-  - **GRID**: 카드 대시보드 (팀원 데스크 뷰). 6인의 상태·활동·모델·스탯 한눈에.
-    하단 Capability Strip에 모델 패밀리(관측 시 하이라이트) · Sub Agent 종류(담당 캐릭터별) ·
-    활성 Skills(플러그인별) · 활성 플러그인이 표시됩니다 (`GET /env/capabilities`, 서버 기동 시 1회 스캔).
-  - **OFFICE**: PixiJS 사무실 씬. 같은 픽셀 캐릭터가 각자 자리에 앉아있고, 툴 실행 시 해당 공간으로 걸어감.
+과거의 GRID/OFFICE 모드 전환은 제거되고 한 화면으로 통합되었습니다. 위에서부터:
+
+- **캐릭터 카드 패널** — 6인의 카드가 상단에 가로 한 줄로 상시 표시 (상태·활동·모델·스탯).
+  카드 폭은 280~320px로 고정되며, 창이 좁으면 줄바꿈 대신 패널에 가로 스크롤이 생깁니다.
+- **오피스 씬** — PixiJS 사무실. 픽셀 캐릭터가 각자 자리에 앉아있고, 툴 실행 시 해당 공간으로 걸어감.
+  - 캔버스는 920×510 논리 좌표계를 유지한 채 **브라우저 크기에 맞춰 스케일** —
+    `min(가용 폭/920, 가용 높이/510)` 비율로 스크롤 없이 항상 사무실 전체가 보입니다.
+  - 캐릭터 이름표는 캔버스 밖 **HTML 네임태그** (고정 11px) — 씬이 확대돼도 흐려지지 않고,
+    걷는 캐릭터를 매 프레임 따라갑니다.
+  - **✎ 위치 편집**: 캐릭터 드래그로 좌석 이동, 방향(N/E/S/W)·자세(서기/앉기/타이핑) 변경.
+- **Capability Strip** — 하단 상시 표시. 왼쪽 라벨 컬럼(MODELS/SUB AGENTS/SKILLS/PLUGINS)과
+  오른쪽 칩 영역의 2단 구성. 모델 패밀리(관측 시 하이라이트) · Sub Agent 종류(담당 캐릭터별) ·
+  활성 Skills(플러그인별) · 활성 플러그인 (`GET /env/capabilities`, 서버 기동 시 1회 스캔).
 
 ## 팀 설정 (⚙ SETUP)
 
@@ -51,12 +61,14 @@ Main 세션 + 5개 스페셜리스트로 구성. 각 캐릭터는 실제 라우�
 
 | 캐릭터 | 역할 | 활성 조건 |
 |---|---|---|
-| **김대리** | Main Session (PM) | 사용자 프롬프트, 매칭되지 않은 모든 툴 호출의 폴백. Main 세션이 Edit/Write로 코드를 직접 구현하는 경우도 포함 |
+| **나팀장** | Main Session (PM) | 사용자 프롬프트, 매칭되지 않은 모든 툴 호출의 폴백. Main 세션이 Edit/Write로 코드를 직접 구현하는 경우도 포함 |
 | **박기획** | Planner / Researcher | `Plan` 서브에이전트 spawn / `Grep`·`Glob` 호출 / `.md`·`.txt`·`.rst` Read |
-| **테스터** | Test Runner / Analyst | `Bash`에서 pytest·jest·vitest·go test·cargo test·mocha·npm test 등 |
-| **디버거** | Log / Error Analyst | `Bash`에서 grep·rg·tail·less·head·journalctl·dmesg / `*.log` 파일 Read |
-| **리뷰어** | Code Reviewer | `general-purpose` 서브에이전트 (SDD 리뷰 워크플로 포함) |
-| **문서담당** | Docs Manager | `.md`·`.mdx`·`.rst` 파일 Write/Edit / `claude-code-guide` 서브에이전트 |
+| **왕꼼꼼** | Test Runner / Analyst | `Bash`에서 pytest·jest·vitest·go test·cargo test·mocha·npm test 등 |
+| **김모아** | Log / Error Analyst | `Bash`에서 grep·rg·tail·less·head·journalctl·dmesg / `*.log` 파일 Read |
+| **최강진** | Code Reviewer | `general-purpose` 서브에이전트 (SDD 리뷰 워크플로 포함) |
+| **송작가** | Docs Manager | `.md`·`.mdx`·`.rst` 파일 Write/Edit / `claude-code-guide` 서브에이전트 |
+
+기본 이름은 `config/characters.json`에서 관리합니다.
 
 서브에이전트 타입 → 캐릭터 매핑은 `src/server/characterRouter.ts`의 `AGENT_TYPE_MAP`에서 관리합니다.
 현행 내장 5종(Plan/Explore/general-purpose/claude-code-guide/statusline-setup)과 이 머신에서
@@ -93,7 +105,7 @@ Main 세션 + 5개 스페셜리스트로 구성. 각 캐릭터는 실제 라우�
 
 ## 테스트
 
-- `npm test` — vitest (66 tests)
+- `npm test` — vitest (85 tests)
 
 ## 아키텍처 하이라이트
 
@@ -105,7 +117,7 @@ Main 세션 + 5개 스페셜리스트로 구성. 각 캐릭터는 실제 라우�
 
 ## Known v1 Debt
 
-- **Playwright E2E 스모크 테스트**: v1은 vitest 66개 유닛/통합으로 커버, E2E는 v1.1로 이월
+- **Playwright E2E 스모크 테스트**: v1은 vitest 85개 유닛/통합으로 커버, E2E는 v1.1로 이월
 - **오피스 뷰 상호작용 확장**: 툴 이동만. 후속: 캐릭터 간 대화 애니, 걸음 프레임 애니
 - **npm audit high 취약점**: Fastify 4의 transitive dep (`find-my-way`) → Fastify 5 업그레이드로 자연 해소 예정
-- **아이소메트릭 오피스 반응형**: 캔버스 1024x640 고정. 좁은 뷰포트에서 오버플로
+- **말풍선 스케일링**: 말풍선은 아직 캔버스 안이라 씬과 함께 확대됨 — 이름표처럼 HTML 오버레이 전환 가능
