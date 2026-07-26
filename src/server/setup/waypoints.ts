@@ -11,6 +11,18 @@ const MAX_X = 920;
 const MAX_Y = 510;
 const MAX_POINTS = 12;
 
+/** 저장소 기본 경유점 — config/waypoints.json (배포 기본값). */
+export async function loadWaypointsBase(configDir: string): Promise<WaypointMap> {
+  try {
+    const raw = await readFile(path.join(configDir, 'waypoints.json'), 'utf8');
+    const parsed = JSON.parse(raw) as WaypointMap;
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+/** 사용자 편집분 — ~/.claude-office/waypoints.json. */
 export async function loadWaypoints(): Promise<WaypointMap> {
   try {
     const raw = await readFile(WAYPOINTS_FILE, 'utf8');
@@ -19,6 +31,17 @@ export async function loadWaypoints(): Promise<WaypointMap> {
   } catch {
     return {};
   }
+}
+
+/** 기본값 위에 사용자 편집분을 캐릭터×목적지 단위로 덮어쓴다. */
+export function mergeWaypoints(base: WaypointMap, overrides: WaypointMap): WaypointMap {
+  const out: WaypointMap = {};
+  const charIds = new Set([...Object.keys(base), ...Object.keys(overrides)]);
+  for (const id of charIds) {
+    const key = id as keyof WaypointMap;
+    out[key] = { ...(base[key] ?? {}), ...(overrides[key] ?? {}) };
+  }
+  return out;
 }
 
 export async function saveWaypoints(map: WaypointMap): Promise<string> {

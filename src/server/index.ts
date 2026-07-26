@@ -20,7 +20,7 @@ import { installHooks } from './setup/installHooks.js';
 import { collectCapabilities } from './env/capabilities.js';
 import { loadOverrides, saveOverrides, applyOverrides, type CharacterOverrides, overridesPath } from './setup/overrides.js';
 import { loadDestinationsBase, loadDestinationOverrides, saveDestinationOverrides, applyDestinationOverrides } from './setup/destinations.js';
-import { loadWaypoints, saveWaypoints, sanitizePoints } from './setup/waypoints.js';
+import { loadWaypoints, loadWaypointsBase, mergeWaypoints, saveWaypoints, sanitizePoints } from './setup/waypoints.js';
 import { loadSprites, saveSprites, sanitizeAppearanceDoc } from './setup/sprites.js';
 import { ALL_CHARACTER_IDS, type CharacterId } from '../shared/character.js';
 import type { DomainEvent } from '../shared/events.js';
@@ -143,7 +143,8 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
   });
 
   // 캐릭터×목적지별 걷기 경유점. 자리→경유점들→목적지 순서로 걷는다.
-  const waypoints = await loadWaypoints();
+  // 저장소 기본값(config/waypoints.json) 위에 사용자 편집분을 병합.
+  const waypoints = mergeWaypoints(await loadWaypointsBase(configDir), await loadWaypoints());
 
   app.get('/config/waypoints', async () => waypoints);
 

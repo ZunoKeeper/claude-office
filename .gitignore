@@ -5,5 +5,8 @@ dist
 *.log
 .vite
 .DS_Store
-# Per-user runtime state — user installs hooks via onboarding, not repo
-.claude/
+# 프로젝트 hook 설정(.claude/settings.json)은 기본값으로 배포한다 —
+# 클론 직후 이 프로젝트에서 실행하는 Claude Code 세션이 바로 관측되도록.
+# 개인 로컬 설정만 제외.
+.claude/*
+!.claude/settings.json

@@ -1,5 +1,31 @@
 [
-  { "id": "dashboard",  "label": "대시보드",      "x": 830, "y": 160, "tools": ["Bash", "PowerShell"] },
-  { "id": "library", "label": "책장", "x": 833, "y": 363, "tools": ["WebFetch", "WebSearch"] },
-  { "id": "pantry", "label": "탕비실", "x": 833, "y": 363, "tools": [""] }
+  {
+    "id": "dashboard",
+    "label": "대시보드",
+    "x": 545,
+    "y": 198,
+    "tools": [
+      "Bash",
+      "PowerShell"
+    ]
+  },
+  {
+    "id": "library",
+    "label": "책장",
+    "x": 590,
+    "y": 275,
+    "tools": [
+      "WebFetch",
+      "WebSearch"
+    ]
+  },
+  {
+    "id": "pantry",
+    "label": "탕비실",
+    "x": 732,
+    "y": 198,
+    "tools": [
+      ""
+    ]
+  }
 ]

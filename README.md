@@ -26,6 +26,12 @@ clone 직후 아래 한 번이면 Volta 설치 → Node 22 pin → 의존성 설
 
 ## 첫 실행
 
+**이 저장소 안에서 실행하는 Claude Code 세션은 클론 직후 바로 관측됩니다** —
+프로젝트 hook 설정(`.claude/settings.json`)이 저장소에 기본값으로 포함되어 있기
+때문입니다 (서버가 꺼져 있으면 hook은 조용히 무시됨: `|| true` + `timeout 5`).
+
+다른 프로젝트의 세션까지 관측하려면 전역 설치가 필요합니다:
+
 1. 브라우저 접속 → 온보딩 화면 (▶ NEW GAME)
 2. "전역" 또는 "현재 프로젝트" 선택 → 자동 설치 (curl로 hook 커맨드를 settings.json에 병합).
    훅 커맨드는 전 플랫폼 POSIX(sh) 문법 — Claude Code가 Windows에서도 Git Bash로 훅을 실행합니다.
@@ -170,6 +176,8 @@ ambient 발화 케이던스 (상태별):
 | `config/characters.json` | 캐릭터 이름·역할·설명·좌석 좌표(`officeSeat`)·바라보는 방향(`seatDirection`)·휴식 자세(`seatPose`: stand/sit/type) | 서버 재시작 |
 | `config/dialogue/*.json` | 캐릭터별 대사 풀 (위 섹션 참고) | 서버 재시작 |
 | `config/toolDestinations.json` | 동선 목적지 — `{ id, label, x, y, tools: [...] }`. `tools`에 적힌 툴 실행 시 캐릭터가 그 좌표로 걸어감 (920×510 논리 좌표) | 서버 재시작 |
+| `config/waypoints.json` | 캐릭터×목적지별 걷기 경유점 기본값 — `~/.claude-office/waypoints.json`(UI 편집분)이 목적지 단위로 덮어씀 | 서버 재시작 |
+| `.claude/settings.json` | 이 프로젝트에서 실행되는 Claude Code 세션의 hook (기본 배포 — 클론 직후 동작) | Claude Code 세션 재시작 |
 | `config/activityRules.json` | 툴/파일패턴/커맨드패턴 → 담당 캐릭터 라우팅 규칙 (`priority` 높은 쪽 우선) | 서버 재시작 |
 
 **`~/.claude-office/` (사용자 오버라이드 — UI에서 편집, 즉시 반영)**
