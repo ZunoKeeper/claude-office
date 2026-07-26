@@ -28,6 +28,13 @@ export interface ToolDestination {
   tools: string[];
 }
 
+/** 걷기 경유점 하나 (920×510 논리 좌표). */
+export interface WaypointPoint { x: number; y: number }
+
+/** 캐릭터 → 목적지 id → 경유점 목록. 자리→경유점들→목적지 순서로 걷고,
+ *  돌아올 때는 역순. 항목이 없으면 직선 이동. */
+export type WaypointMap = Partial<Record<CharacterId, Record<string, WaypointPoint[]>>>;
+
 export interface ActivityRule {
   characterId: CharacterId;
   match: {

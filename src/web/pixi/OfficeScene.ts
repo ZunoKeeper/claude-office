@@ -1,6 +1,6 @@
 import { Application, Assets, Container, type FederatedPointerEvent, Sprite } from 'pixi.js';
-import type { CharacterId, CharacterState } from '../../shared/character.js';
-import type { CharacterConfig, ToolDestination } from '../../shared/config.js';
+import type { CharacterId, CharacterState, CharacterStatus } from '../../shared/character.js';
+import type { CharacterConfig, SeatDirection, ToolDestination, WaypointMap, WaypointPoint } from '../../shared/config.js';
 import { CharacterSprite } from './CharacterSprite.js';
 
 /**
@@ -38,8 +38,19 @@ export class OfficeScene {
   private sprites = new Map<CharacterId, CharacterSprite>();
   private seats = new Map<CharacterId, { x: number; y: number }>();
   private lastActivity = new Map<CharacterId, string | undefined>();
-  /** toolName → 목적지 좌표 (920×510 논리 좌표). setDestinations로 주입. */
-  private toolDests = new Map<string, { x: number; y: number }>();
+  /** toolName → 목적지 (920×510 논리 좌표). setDestinations로 주입. */
+  private toolDests = new Map<string, { id: string; x: number; y: number }>();
+  private destList: ToolDestination[] = [];
+  private waypoints: WaypointMap = {};
+  /** 캐릭터별 이동 명령 토큰 — 새 명령이 오면 진행 중인 경로 걷기를 중단시킨다. */
+  private moveSeq = new Map<CharacterId, number>();
+  /** 지금 가 있는(또는 가는 중인) 목적지 id — 복귀 시 경유점을 역순으로 쓰기 위함. */
+  private lastDestId = new Map<CharacterId, string>();
+  private statuses = new Map<CharacterId, CharacterStatus>();
+  private seatDirs = new Map<CharacterId, SeatDirection>();
+  private wandering = new Set<CharacterId>();
+  private nextWanderAt = new Map<CharacterId, number>();
+  private wanderTimer: ReturnType<typeof setInterval> | null = null;
   private pendingSetCharacters: { states: CharacterState[]; configs: CharacterConfig[] } | null = null;
 
   constructor(private canvas: HTMLCanvasElement) {
@@ -84,6 +95,9 @@ export class OfficeScene {
         );
       }
     });
+    // 자유 배회 — 한가한 캐릭터가 이따금 목적지 한 곳을 다녀온다
+    this.wanderTimer = setInterval(() => this.wanderTick(), 4000);
+
     this.ready = true;
     if (this.pendingSetCharacters) {
       this.setCharacters(this.pendingSetCharacters.states, this.pendingSetCharacters.configs);
@@ -132,10 +146,10 @@ export class OfficeScene {
         sprite.cursor = this.editMode ? 'grab' : 'default';
         this.worldLayer.addChild(sprite);
         this.sprites.set(s.id, sprite);
-      } else if (!this.lastActivity.get(s.id)) {
+      } else if (!this.lastActivity.get(s.id) && !sprite.isMoving && !this.wandering.has(s.id)) {
         // Config hot-reload: seat / direction / pose may have moved. Snap
-        // idle sprites so edits show up immediately. Sprites mid-tool-walk
-        // keep their current tween.
+        // idle sprites so edits show up immediately. Sprites mid-walk or
+        // out wandering keep their current position.
         if (sprite.x !== seat.x || sprite.y !== seat.y) {
           sprite.x = seat.x;
           sprite.y = seat.y;
@@ -145,6 +159,8 @@ export class OfficeScene {
         sprite.setSeatPose(seatPose);
       }
       sprite.setStatus(s.status);
+      this.statuses.set(s.id, s.status);
+      this.seatDirs.set(s.id, seatDir);
 
       const currTool = s.currentActivity?.toolName;
       const prevTool = this.lastActivity.get(s.id);
@@ -152,13 +168,79 @@ export class OfficeScene {
         this.lastActivity.set(s.id, currTool);
         const dest = currTool ? this.toolDests.get(currTool) : null;
         if (dest) {
-          void this.moveSpriteScreen(sprite, dest.x, dest.y, 900);
+          this.wandering.delete(s.id);
+          this.lastDestId.set(s.id, dest.id);
+          const wps = this.waypoints[s.id]?.[dest.id] ?? [];
+          void this.walkPath(sprite, [...wps, { x: dest.x, y: dest.y }]);
         } else {
-          void this.moveSpriteScreen(sprite, seat.x, seat.y, 600).then(() => {
-            sprite?.setDirection(seatDir);
+          // 갔던 목적지의 경유점을 역순으로 밟으며 자리로 복귀
+          const backWps = [...(this.waypoints[s.id]?.[this.lastDestId.get(s.id) ?? ''] ?? [])].reverse();
+          this.lastDestId.delete(s.id);
+          this.wandering.delete(s.id);
+          void this.walkPath(sprite, [...backWps, { x: seat.x, y: seat.y }]).then((completed) => {
+            if (completed) sprite?.setDirection(seatDir);
           });
         }
       }
+    }
+  }
+
+  /** 지점들을 순서대로 걷는다. 새 이동 명령(토큰 교체)이 오면 다음 구간부터
+   *  중단하고 false를 반환한다. 구간별 시간은 거리에 비례(속도 일정). */
+  private async walkPath(sprite: CharacterSprite, pts: WaypointPoint[]): Promise<boolean> {
+    const id = sprite.characterId;
+    const token = (this.moveSeq.get(id) ?? 0) + 1;
+    this.moveSeq.set(id, token);
+    for (const p of pts) {
+      if (this.destroyed || this.moveSeq.get(id) !== token) return false;
+      const dist = Math.hypot(p.x - sprite.x, p.y - sprite.y);
+      const dur = Math.max(180, Math.min(1600, dist / 0.28));
+      await this.moveSpriteScreen(sprite, p.x, p.y, dur);
+    }
+    return !this.destroyed && this.moveSeq.get(id) === token;
+  }
+
+  /** 자유 배회: idle 캐릭터가 이따금 목적지 한 곳을 (경유점 경로로) 다녀온다. */
+  private wanderTick(): void {
+    if (this.destroyed || this.editMode || this.destList.length === 0) return;
+    const now = Date.now();
+    for (const sprite of this.sprites.values()) {
+      const id = sprite.characterId;
+      if (this.statuses.get(id) !== 'idle') {
+        this.nextWanderAt.delete(id);
+        continue;
+      }
+      if (sprite.isMoving || this.wandering.has(id)) continue;
+      const due = this.nextWanderAt.get(id);
+      if (due === undefined) {
+        // idle 진입 후 첫 배회는 15~60초 뒤
+        this.nextWanderAt.set(id, now + 15_000 + Math.random() * 45_000);
+        continue;
+      }
+      if (now < due) continue;
+      this.nextWanderAt.set(id, now + 30_000 + Math.random() * 60_000);
+      void this.wanderOnce(sprite);
+    }
+  }
+
+  private async wanderOnce(sprite: CharacterSprite): Promise<void> {
+    const id = sprite.characterId;
+    const dest = this.destList[Math.floor(Math.random() * this.destList.length)];
+    const seat = this.seats.get(id);
+    if (!dest || !seat) return;
+    this.wandering.add(id);
+    try {
+      const wps = this.waypoints[id]?.[dest.id] ?? [];
+      const arrived = await this.walkPath(sprite, [...wps, { x: dest.x, y: dest.y }]);
+      if (!arrived) return;
+      const myToken = this.moveSeq.get(id);
+      // 목적지에서 잠깐 머물다가 (그 사이 일이 들어오면 복귀는 활동 로직에 맡김)
+      await new Promise((r) => setTimeout(r, 2000 + Math.random() * 2500));
+      if (this.destroyed || this.moveSeq.get(id) !== myToken || this.statuses.get(id) !== 'idle') return;
+      const back = await this.walkPath(sprite, [...[...wps].reverse(), { x: seat.x, y: seat.y }]);
+      if (back) sprite.setDirection(this.seatDirs.get(id) ?? 'S');
+    } finally {
+      this.wandering.delete(id);
     }
   }
 
@@ -167,6 +249,23 @@ export class OfficeScene {
     for (const s of this.sprites.values()) {
       s.eventMode = enable ? 'dynamic' : 'static';
       s.cursor = enable ? 'grab' : 'default';
+    }
+    if (enable) {
+      // 진행 중인 배회는 중단하고 자리로 되돌린다 — 편집 중 드래그와 충돌 방지
+      for (const s of this.sprites.values()) {
+        const id = s.characterId;
+        this.moveSeq.set(id, (this.moveSeq.get(id) ?? 0) + 1);
+        if (this.wandering.has(id)) {
+          void s.moveTo(s.x, s.y, 0); // 현재 트윈 취소
+          const seat = this.seats.get(id);
+          if (seat) {
+            s.x = seat.x;
+            s.y = seat.y;
+            s.worldPos = { x: seat.x, y: seat.y };
+          }
+        }
+      }
+      this.wandering.clear();
     }
     if (!enable) {
       if (this.dragging) {
@@ -189,10 +288,16 @@ export class OfficeScene {
 
   /** 툴 → 목적지 매핑 교체. 이후의 툴 이동부터 새 좌표가 적용된다. */
   setDestinations(dests: ToolDestination[]): void {
+    this.destList = dests;
     this.toolDests.clear();
     for (const d of dests) {
-      for (const tool of d.tools) this.toolDests.set(tool, { x: d.x, y: d.y });
+      for (const tool of d.tools) this.toolDests.set(tool, { id: d.id, x: d.x, y: d.y });
     }
+  }
+
+  /** 캐릭터×목적지별 경유점 교체. 이후의 걷기부터 새 경로가 적용된다. */
+  setWaypoints(map: WaypointMap): void {
+    this.waypoints = map;
   }
 
   /** Optimistic update so the browser reflects a direction change immediately;
@@ -267,6 +372,10 @@ export class OfficeScene {
 
   destroy(): void {
     this.destroyed = true;
+    if (this.wanderTimer) {
+      clearInterval(this.wanderTimer);
+      this.wanderTimer = null;
+    }
     if (!this.ready) return;
     this.safeDestroyApp();
   }

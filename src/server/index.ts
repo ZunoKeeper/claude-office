@@ -20,6 +20,7 @@ import { installHooks } from './setup/installHooks.js';
 import { collectCapabilities } from './env/capabilities.js';
 import { loadOverrides, saveOverrides, applyOverrides, type CharacterOverrides, overridesPath } from './setup/overrides.js';
 import { loadDestinationsBase, loadDestinationOverrides, saveDestinationOverrides, applyDestinationOverrides } from './setup/destinations.js';
+import { loadWaypoints, saveWaypoints, sanitizePoints } from './setup/waypoints.js';
 import { ALL_CHARACTER_IDS, type CharacterId } from '../shared/character.js';
 import type { DomainEvent } from '../shared/events.js';
 
@@ -120,6 +121,39 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
       const target = await saveDestinationOverrides(destOverrides);
       ws.broadcast({ kind: 'configUpdated' });
       return { ok: true, target, destination: destinations.find((d) => d.id === dest.id) };
+    },
+  );
+
+  // 캐릭터×목적지별 걷기 경유점. 자리→경유점들→목적지 순서로 걷는다.
+  const waypoints = await loadWaypoints();
+
+  app.get('/config/waypoints', async () => waypoints);
+
+  app.put<{ Params: { charId: string; destId: string }; Body: { points?: unknown } }>(
+    '/config/waypoints/:charId/:destId',
+    async (req, reply) => {
+      const charId = req.params.charId as CharacterId;
+      if (!ALL_CHARACTER_IDS.includes(charId)) {
+        reply.code(404);
+        return { ok: false, error: `unknown character: ${charId}` };
+      }
+      if (!destinations.some((d) => d.id === req.params.destId)) {
+        reply.code(404);
+        return { ok: false, error: `unknown destination: ${req.params.destId}` };
+      }
+      const points = sanitizePoints(req.body?.points);
+      if (points === null) {
+        reply.code(400);
+        return { ok: false, error: 'points must be an array of {x,y} (max 12)' };
+      }
+      const forChar = { ...(waypoints[charId] ?? {}) };
+      if (points.length === 0) delete forChar[req.params.destId];
+      else forChar[req.params.destId] = points;
+      if (Object.keys(forChar).length === 0) delete waypoints[charId];
+      else waypoints[charId] = forChar;
+      const target = await saveWaypoints(waypoints);
+      ws.broadcast({ kind: 'configUpdated' });
+      return { ok: true, target, points };
     },
   );
 

@@ -443,6 +443,47 @@ html, body {
   font-family: 'Press Start 2P', monospace;
 }
 
+/* 경유점 편집 — 경로선(SVG)과 번호 마커 */
+.path-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 11;
+}
+
+.path-overlay polyline {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2;
+  stroke-dasharray: 6 5;
+  opacity: 0.75;
+}
+
+.wp-marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 13;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  color: var(--paper);
+  background: var(--st-thinking);
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  box-shadow: 1px 1px 0 var(--ink);
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.wp-marker.dragging { cursor: grabbing; box-shadow: none; }
+
 /* 말풍선 — 캔버스 밖 HTML 오버레이. 앵커는 프레임 콜백이 좌표를 갱신하는
    0크기 기준점이고, 실제 풍선은 그 위(-100%)에 뜬다. */
 .office-bubble-anchor {

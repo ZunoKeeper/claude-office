@@ -4,7 +4,7 @@ import { PIXEL_SCALE } from '../pixi/CharacterSprite.js';
 import { SPRITE_H } from '../pixi/sprites/types.js';
 import { useCharacterStore } from '../store/characterStore.js';
 import { ALL_CHARACTER_IDS, type CharacterId, type CharacterState } from '../../shared/character.js';
-import type { CharacterConfig, SeatDirection, SeatPose, ToolDestination } from '../../shared/config.js';
+import type { CharacterConfig, SeatDirection, SeatPose, ToolDestination, WaypointMap, WaypointPoint } from '../../shared/config.js';
 import { OfficeOverlay } from './OfficeOverlay.js';
 
 function empty(id: CharacterConfig['id']): CharacterState {
@@ -40,6 +40,27 @@ function patchDestination(id: string, x: number, y: number): void {
   }).catch(() => { /* configUpdated WS reply re-syncs */ });
 }
 
+function putWaypoints(charId: CharacterId, destId: string, points: WaypointPoint[]): void {
+  void fetch(`/config/waypoints/${charId}/${destId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ points }),
+  }).catch(() => { /* configUpdated WS reply re-syncs */ });
+}
+
+/** 화면(pointer) 좌표 → 스테이지 논리 좌표(920×510) 변환. */
+function toLogicalPoint(
+  e: { clientX: number; clientY: number },
+  wrapEl: HTMLElement,
+  fit: { scale: number; offsetX: number },
+): WaypointPoint {
+  const rect = wrapEl.getBoundingClientRect();
+  return {
+    x: Math.max(0, Math.min(920, (e.clientX - rect.left - fit.offsetX) / fit.scale)),
+    y: Math.max(0, Math.min(510, (e.clientY - rect.top) / fit.scale)),
+  };
+}
+
 // 씬 내부 로직 좌표계 (OfficeScene CANVAS_W/H와 동일). 브라우저 크기에 따라
 // 이 스테이지 전체를 CSS transform으로 확대해 배경·좌석·오버레이를 함께 스케일한다.
 const STAGE_W = 920;
@@ -54,6 +75,9 @@ export function IsometricOffice({ configs }: { configs: CharacterConfig[] }) {
   const [editMode, setEditMode] = useState(false);
   const [selectedId, setSelectedId] = useState<CharacterId | null>(null);
   const [destinations, setDestinations] = useState<ToolDestination[]>([]);
+  const [waypoints, setWaypoints] = useState<WaypointMap>({});
+  /** 경유점 편집 대상 목적지 id (편집 모드 + 캐릭터 선택 시에만 유효) */
+  const [pathDest, setPathDest] = useState<string | null>(null);
   const [fit, setFit] = useState({ scale: 1, offsetX: 0 });
   const fitRef = useRef(fit);
   fitRef.current = fit;
@@ -128,12 +152,50 @@ export function IsometricOffice({ configs }: { configs: CharacterConfig[] }) {
     sceneRef.current?.setDestinations(destinations);
   }, [destinations]);
 
+  // 캐릭터×목적지별 걷기 경유점
+  useEffect(() => {
+    fetch('/config/waypoints').then((r) => r.json()).then(setWaypoints).catch(() => setWaypoints({}));
+  }, [configVersion]);
+
+  useEffect(() => {
+    sceneRef.current?.setWaypoints(waypoints);
+  }, [waypoints]);
+
   useEffect(() => {
     sceneRef.current?.setEditMode(editMode);
     if (!editMode) setSelectedId(null);
   }, [editMode]);
 
+  // 선택 캐릭터가 바뀌면 경로 편집 대상도 초기화
+  useEffect(() => { setPathDest(null); }, [selectedId, editMode]);
+
   const selected = selectedId ? configs.find((c) => c.id === selectedId) : null;
+  const pathDestObj = pathDest ? destinations.find((d) => d.id === pathDest) ?? null : null;
+  const selPts: WaypointPoint[] = selected && pathDest
+    ? waypoints[selected.id]?.[pathDest] ?? []
+    : [];
+
+  function replaceSelPts(pts: WaypointPoint[], commit: boolean): void {
+    if (!selected || !pathDest) return;
+    const charId = selected.id;
+    const destId = pathDest;
+    setWaypoints((prev) => ({
+      ...prev,
+      [charId]: { ...(prev[charId] ?? {}), [destId]: pts },
+    }));
+    if (commit) {
+      putWaypoints(charId, destId, pts.map((p) => ({ x: Math.round(p.x), y: Math.round(p.y) })));
+    }
+  }
+
+  function addWaypoint(): void {
+    if (!selected || !pathDestObj) return;
+    // 마지막 지점(없으면 자리)과 목적지의 중간에 새 점을 추가
+    const prev = selPts.length > 0 ? selPts[selPts.length - 1] : selected.officeSeat;
+    const nx = Math.round((prev.x + pathDestObj.x) / 2);
+    const ny = Math.round((prev.y + pathDestObj.y) / 2);
+    replaceSelPts([...selPts, { x: nx, y: ny }], true);
+  }
 
   return (
     <div ref={wrapRef} style={{ position: 'relative', height: STAGE_H * fit.scale, overflow: 'hidden' }}>
@@ -148,6 +210,11 @@ export function IsometricOffice({ configs }: { configs: CharacterConfig[] }) {
         {editMode && selected && (
           <EditPanel
             config={selected}
+            destinations={destinations}
+            pathDest={pathDest}
+            onPathDest={(id) => setPathDest((cur) => (cur === id ? null : id))}
+            onAddPoint={addWaypoint}
+            waypointCount={selPts.length}
             onDirection={(dir) => {
               // Update the sprite locally before the PATCH round-trip so the
               // button click feels instant. The eventual configUpdated broadcast
@@ -202,6 +269,31 @@ export function IsometricOffice({ configs }: { configs: CharacterConfig[] }) {
       {editMode && destinations.map((d) => (
         <DestMarker key={d.id} dest={d} fit={fit} wrapRef={wrapRef} />
       ))}
+
+      {/* 경유점 편집 — 자리→경유점들→목적지 경로선과 드래그 가능한 번호 마커 */}
+      {editMode && selected && pathDestObj && (
+        <>
+          <svg className="path-overlay">
+            <polyline
+              points={[selected.officeSeat, ...selPts, { x: pathDestObj.x, y: pathDestObj.y }]
+                .map((p) => `${p.x * fit.scale + fit.offsetX},${p.y * fit.scale}`)
+                .join(' ')}
+            />
+          </svg>
+          {selPts.map((p, i) => (
+            <WaypointMarker
+              key={i}
+              index={i}
+              point={p}
+              fit={fit}
+              wrapRef={wrapRef}
+              onDrag={(np) => replaceSelPts(selPts.map((q, j) => (j === i ? np : q)), false)}
+              onDrop={(np) => replaceSelPts(selPts.map((q, j) => (j === i ? np : q)), true)}
+              onDelete={() => replaceSelPts(selPts.filter((_, j) => j !== i), true)}
+            />
+          ))}
+        </>
+      )}
 
       {/* 편집 버튼은 스케일 밖 — 확대해도 UI 크기가 일정하다 */}
       <div style={{
@@ -271,6 +363,41 @@ function DestMarker({ dest, fit, wrapRef }: {
   );
 }
 
+/** 경유점 마커 — 드래그로 이동, 더블클릭으로 삭제. */
+function WaypointMarker({ index, point, fit, wrapRef, onDrag, onDrop, onDelete }: {
+  index: number;
+  point: WaypointPoint;
+  fit: { scale: number; offsetX: number };
+  wrapRef: React.RefObject<HTMLDivElement>;
+  onDrag(p: WaypointPoint): void;
+  onDrop(p: WaypointPoint): void;
+  onDelete(): void;
+}) {
+  const [dragging, setDragging] = useState(false);
+  return (
+    <div
+      className={`wp-marker ${dragging ? 'dragging' : ''}`}
+      style={{ left: point.x * fit.scale + fit.offsetX, top: point.y * fit.scale }}
+      title="경유점 — 드래그: 이동 · 더블클릭: 삭제"
+      onPointerDown={(e) => {
+        e.preventDefault();
+        try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* 합성 이벤트 대비 */ }
+        setDragging(true);
+      }}
+      onPointerMove={(e) => { if (dragging) onDrag(toLogicalPoint(e, wrapRef.current!, fit)); }}
+      onPointerUp={(e) => {
+        if (!dragging) return;
+        setDragging(false);
+        try { e.currentTarget.releasePointerCapture(e.pointerId); } catch { /* ditto */ }
+        onDrop(toLogicalPoint(e, wrapRef.current!, fit));
+      }}
+      onDoubleClick={onDelete}
+    >
+      {index + 1}
+    </div>
+  );
+}
+
 /** TTL이 지나면 페이드아웃 후 언마운트되는 말풍선 한 줄. key={line.ts}로
  *  새 대사마다 리마운트되어 pop-in 애니메이션이 다시 재생된다. */
 function BubbleLine({ line }: { line: { text: string; ts: number; ttlMs: number } }) {
@@ -295,18 +422,26 @@ function BubbleLine({ line }: { line: { text: string; ts: number; ttlMs: number 
 
 interface EditPanelProps {
   config: CharacterConfig;
+  destinations: ToolDestination[];
+  pathDest: string | null;
+  waypointCount: number;
+  onPathDest(id: string): void;
+  onAddPoint(): void;
   onDirection(d: SeatDirection): void;
   onPose(p: SeatPose): void;
   onClose(): void;
 }
 
-function EditPanel({ config, onDirection, onPose, onClose }: EditPanelProps) {
+function EditPanel({
+  config, destinations, pathDest, waypointCount,
+  onPathDest, onAddPoint, onDirection, onPose, onClose,
+}: EditPanelProps) {
   const currentDir = config.seatDirection ?? 'S';
   const currentPose = config.seatPose ?? 'stand';
   // Position the panel just below the seat coord; clamp so it stays inside
   // the 920×510 canvas frame.
   const panelW = 200;
-  const panelH = 100;
+  const panelH = 168;
   const left = Math.max(4, Math.min(920 - panelW - 4, config.officeSeat.x - panelW / 2));
   const top = Math.max(4, Math.min(510 - panelH - 4, config.officeSeat.y + 18));
 
@@ -373,6 +508,37 @@ function EditPanel({ config, onDirection, onPose, onClose }: EditPanelProps) {
           >{p.label}</button>
         ))}
       </div>
+      <div style={{ marginTop: 4, color: '#5b3820' }}>이동 동선 (경유점)</div>
+      <div style={{ display: 'flex', gap: 4 }}>
+        {destinations.map((d) => (
+          <button
+            key={d.id}
+            title={`${d.label}까지의 걷기 경로 편집`}
+            onClick={() => onPathDest(d.id)}
+            style={{
+              flex: 1, padding: '3px 0',
+              border: '1px solid #2a1a0a',
+              borderRadius: 3,
+              background: pathDest === d.id ? '#fbbf24' : '#fff2c4',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              fontSize: 10,
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}
+          >{d.label}</button>
+        ))}
+      </div>
+      {pathDest && (
+        <button
+          onClick={onAddPoint}
+          style={{
+            marginTop: 4, width: '100%', padding: '3px 0',
+            border: '1px solid #2a1a0a', borderRadius: 3,
+            background: '#fff2c4', cursor: 'pointer',
+            fontFamily: 'inherit', fontSize: 10,
+          }}
+        >＋ 경유점 추가 ({waypointCount}개) · 더블클릭으로 삭제</button>
+      )}
     </div>
   );
 }

@@ -79,6 +79,11 @@ export class CharacterSprite extends Container {
     return this.id;
   }
 
+  /** 이동 트윈이 진행 중인지 — 배회 스케줄러가 겹침을 피하는 데 쓴다. */
+  get isMoving(): boolean {
+    return this.tweenTo !== undefined;
+  }
+
   // 이름표는 캔버스 밖 HTML 오버레이(IsometricOffice)가 그린다 — 캔버스가
   // CSS 스케일될 때 글씨가 흐려지지 않도록 고정 크기로 유지하기 위함.
   constructor(private id: CharacterId) {

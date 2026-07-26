@@ -1,4 +1,4 @@
 [
-  { "id": "pantry",  "label": "탕비실",      "x": 830, "y": 160, "tools": ["Bash", "PowerShell"] },
-  { "id": "meeting", "label": "회의 테이블", "x": 833, "y": 363, "tools": ["WebFetch", "WebSearch"] }
+  { "id": "pantry",  "label": "대시보드",      "x": 830, "y": 160, "tools": ["Bash", "PowerShell"] },
+  { "id": "meeting", "label": "책장", "x": 833, "y": 363, "tools": ["WebFetch", "WebSearch"] }
 ]
