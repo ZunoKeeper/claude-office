@@ -59,17 +59,21 @@ export function CapabilityStrip({ configs }: { configs: CharacterConfig[] }) {
     <div className="capability-strip">
       <div className="cap-row">
         <span className="cap-label">MODELS</span>
-        {caps.models.map((family) => {
+        {caps.models.flatMap((family) => {
           const obs = [...new Set(observedModels.filter((m) => m.includes(family)))];
-          return (
-            <span
-              key={family}
-              className={`cap-chip ${obs.length ? 'live' : ''}`}
-              title={obs.length ? `관측됨: ${obs.join(', ')}` : '이 세션에서 아직 관측되지 않음'}
-            >
-              ◈ {family}
+          if (!obs.length) {
+            return [
+              <span key={family} className="cap-chip off" title="이 세션에서 아직 관측되지 않음 — 관측되면 정확한 버전이 표시됩니다">
+                ◈ {family}
+              </span>,
+            ];
+          }
+          // 관측된 모델은 정확한 버전으로 표기: claude-opus-4-8 → opus-4-8
+          return obs.map((m) => (
+            <span key={m} className="cap-chip on" title={`관측됨: ${m}`}>
+              ◈ {m.replace(/^claude-/, '')}
             </span>
-          );
+          ));
         })}
       </div>
       <div className="cap-row">
@@ -80,8 +84,8 @@ export function CapabilityStrip({ configs }: { configs: CharacterConfig[] }) {
             {g.items.map((a) => (
               <span
                 key={a.type}
-                className={`cap-chip ${seenTypes.has(a.type) ? 'live' : ''}`}
-                title={a.builtin ? '내장 서브에이전트' : a.source === 'router' ? '라우팅 대상 서브에이전트' : `${a.source} 정의 서브에이전트`}
+                className={`cap-chip ${seenTypes.has(a.type) ? 'on' : 'off'}`}
+                title={`${a.builtin ? '내장 서브에이전트' : a.source === 'router' ? '라우팅 대상 서브에이전트' : `${a.source} 정의 서브에이전트`} · ${seenTypes.has(a.type) ? '이 세션에서 활동 관측됨' : '아직 활동 관측 없음'}`}
               >
                 {a.type}
               </span>

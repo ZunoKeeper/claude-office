@@ -427,46 +427,57 @@ html, body {
    The .desk element has title={description} → shown reliably above the
    header/main-area without z-index or overflow-clip issues. */
 
-/* Capability strip — GRID 뷰 하단 환경 정보 (models/agents/skills/plugins) */
+/* Capability strip — 페이지 하단 고정 환경 정보 (GRID 뷰 전용).
+   app-shell의 main 아래, fixed event-ticker 위에 앉는다. */
 .capability-strip {
-  margin-top: 12px;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 10px 12px;
-  border: 2px solid var(--ink);
-  box-shadow: 2px 2px 0 var(--ink);
+  gap: 6px;
+  padding: 8px 14px;
+  border-top: 3px solid var(--ink);
   background: var(--floor-3);
+  margin-bottom: 32px; /* fixed .event-ticker 높이만큼 확보 */
+  max-height: 40vh;
+  overflow-y: auto;
 }
 
 .cap-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px 6px;
+  gap: 4px 8px;
 }
 
+/* 대분류 — 티커 톤의 반전 밴드 */
 .cap-label {
   font-family: 'Press Start 2P', monospace;
   font-size: 8px;
-  color: var(--wall);
+  background: var(--ink);
+  color: var(--gold);
+  padding: 4px 6px;
+  min-width: 96px;
   letter-spacing: 0.5px;
-  min-width: 92px;
+  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.25);
 }
 
+/* 소분류 — 좌측 보더의 옅은 그룹 상자 */
 .cap-group {
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 4px;
-  padding: 2px 4px;
-  border: 1px dashed var(--wall);
+  padding: 2px 6px;
+  border-left: 3px solid var(--wall);
+  background: rgba(255, 255, 255, 0.28);
 }
 
 .cap-group-label {
   font-family: 'Press Start 2P', monospace;
   font-size: 7px;
   color: var(--wall);
+  opacity: 0.85;
+  margin-right: 2px;
 }
 
 .cap-chip {
@@ -480,7 +491,14 @@ html, body {
   letter-spacing: 0.5px;
 }
 
-.cap-chip.live { background: var(--sky); }
+/* 활성(관측됨) vs 비활성(미관측) 구분 */
+.cap-chip.on { background: var(--sky); }
+.cap-chip.off {
+  background: transparent;
+  border-style: dashed;
+  box-shadow: none;
+  opacity: 0.5;
+}
 
 /* Status badge */
 .badge {

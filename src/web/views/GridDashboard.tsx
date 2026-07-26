@@ -1,6 +1,5 @@
 import { useCharacterStore } from '../store/characterStore.js';
 import { CharacterCard } from '../components/CharacterCard.js';
-import { CapabilityStrip } from '../components/CapabilityStrip.js';
 import { ALL_CHARACTER_IDS, type CharacterId, type CharacterState } from '../../shared/character.js';
 import type { CharacterConfig } from '../../shared/config.js';
 
@@ -16,22 +15,19 @@ export function GridDashboard({ configs }: Props) {
   const characters = useCharacterStore((s) => s.characters);
   const configById = new Map(configs.map((c) => [c.id, c]));
   return (
-    <>
-      <div className="grid-office">
-        {ALL_CHARACTER_IDS.map((id) => {
-          const cfg = configById.get(id);
-          return (
-            <CharacterCard
-              key={id}
-              state={characters[id] ?? empty(id)}
-              name={cfg?.name ?? id}
-              role={cfg?.role ?? ''}
-              description={cfg?.description}
-            />
-          );
-        })}
-      </div>
-      <CapabilityStrip configs={configs} />
-    </>
+    <div className="grid-office">
+      {ALL_CHARACTER_IDS.map((id) => {
+        const cfg = configById.get(id);
+        return (
+          <CharacterCard
+            key={id}
+            state={characters[id] ?? empty(id)}
+            name={cfg?.name ?? id}
+            role={cfg?.role ?? ''}
+            description={cfg?.description}
+          />
+        );
+      })}
+    </div>
   );
 }

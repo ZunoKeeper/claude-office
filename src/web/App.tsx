@@ -6,6 +6,7 @@ import { ReplayControls } from './views/ReplayControls.js';
 import { OnboardingScreen } from './views/OnboardingScreen.js';
 import { SettingsScreen } from './views/SettingsScreen.js';
 import { EventTicker } from './components/EventTicker.js';
+import { CapabilityStrip } from './components/CapabilityStrip.js';
 import { connectWs } from './ws/eventClient.js';
 import { useCharacterStore } from './store/characterStore.js';
 import type { CharacterConfig } from '../shared/config.js';
@@ -60,6 +61,7 @@ export function App() {
           view === 'grid' ? <GridDashboard configs={configs} /> : <IsometricOffice configs={configs} />
         )}
       </main>
+      {view === 'grid' && !showOnboarding && <CapabilityStrip configs={configs} />}
       <EventTicker />
       {settingsOpen && (
         <SettingsScreen configs={configs} onClose={() => setSettingsOpen(false)} onSaved={setConfigs} />
