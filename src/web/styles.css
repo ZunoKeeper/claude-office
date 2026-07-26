@@ -427,6 +427,61 @@ html, body {
    The .desk element has title={description} → shown reliably above the
    header/main-area without z-index or overflow-clip issues. */
 
+/* Capability strip — GRID 뷰 하단 환경 정보 (models/agents/skills/plugins) */
+.capability-strip {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 2px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+  background: var(--floor-3);
+}
+
+.cap-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+}
+
+.cap-label {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: var(--wall);
+  letter-spacing: 0.5px;
+  min-width: 92px;
+}
+
+.cap-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px;
+  border: 1px dashed var(--wall);
+}
+
+.cap-group-label {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: var(--wall);
+}
+
+.cap-chip {
+  display: inline-block;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  padding: 2px 4px;
+  border: 1px solid var(--ink);
+  box-shadow: 1px 1px 0 var(--ink);
+  color: var(--ink);
+  letter-spacing: 0.5px;
+}
+
+.cap-chip.live { background: var(--sky); }
+
 /* Status badge */
 .badge {
   font-family: 'Press Start 2P', monospace;
