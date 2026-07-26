@@ -1098,3 +1098,107 @@ html, body {
   background: var(--floor-2);
   border: 2px solid var(--ink);
 }
+
+/* ── 스프라이트 조합(외모) 에디터 ─────────────────────────────── */
+
+.sheets-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-family: 'DotGothic16', monospace;
+  font-size: 14px;
+  color: var(--ink-muted);
+}
+
+.settings-row-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.appearance-toggle {
+  align-self: flex-start;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  padding: 5px 8px;
+  cursor: pointer;
+}
+
+.appearance-toggle:hover,
+.appearance-toggle.active {
+  background: var(--gold);
+}
+
+.appearance-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  border: 2px solid var(--ink);
+  border-top: none;
+  background: var(--paper);
+}
+
+.appearance-preview {
+  display: flex;
+  gap: 8px;
+  padding: 6px;
+  background: var(--floor-2);
+  border: 2px solid var(--ink);
+  align-self: flex-start;
+}
+
+.appearance-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.appearance-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.appearance-label {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  color: var(--wall);
+  letter-spacing: 1px;
+}
+
+.part-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.part-thumb {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  background: var(--floor-1);
+  border: 2px solid var(--ink);
+  cursor: pointer;
+}
+
+.part-thumb:hover {
+  background: var(--floor-2);
+}
+
+.part-thumb.active {
+  background: var(--gold);
+  box-shadow: 0 0 0 2px var(--ink);
+}
+
+.part-none {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 14px;
+  color: var(--ink-muted);
+}
