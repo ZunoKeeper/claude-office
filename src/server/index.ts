@@ -3,6 +3,7 @@ import websocket from '@fastify/websocket';
 import staticPlugin from '@fastify/static';
 import pino, { type LoggerOptions } from 'pino';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 import chokidar from 'chokidar';
@@ -258,7 +259,7 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
   return app;
 }
 
-const isMain = import.meta.url === `file://${process.argv[1]}`;
+const isMain = process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href;
 if (isMain) {
   startServer().catch((err) => { logger.error(err); process.exit(1); });
 }
