@@ -20,16 +20,30 @@ export interface SettingsJson {
   [k: string]: unknown;
 }
 
-function claudeMonitorCommand(endpoint: string, eventName: string): string {
+// Hook commands run on the machine they were installed on, so the install-time
+// platform decides the shell dialect: cmd on Windows, POSIX sh elsewhere.
+export function claudeMonitorCommand(
+  endpoint: string,
+  eventName: string,
+  platform: NodeJS.Platform = process.platform,
+): string {
+  if (platform === 'win32') {
+    return `curl -sS -X POST ${endpoint} -H "X-CM-Event: ${eventName}" -H "Content-Type: application/json" -d @- 2>nul`;
+  }
   return `curl -sS -X POST ${endpoint} -H 'X-CM-Event: ${eventName}' -H 'Content-Type: application/json' -d @- 2>/dev/null || true`;
 }
 
-export function mergeHooks(existing: unknown, endpoint: string, events: string[]): SettingsJson {
+export function mergeHooks(
+  existing: unknown,
+  endpoint: string,
+  events: string[],
+  platform: NodeJS.Platform = process.platform,
+): SettingsJson {
   const src: SettingsJson = (existing && typeof existing === 'object') ? { ...(existing as SettingsJson) } : {};
   const out: SettingsJson = { ...src, hooks: { ...(src.hooks ?? {}) } };
   for (const ev of events) {
     const groups: HookGroup[] = [...(out.hooks![ev] ?? [])];
-    const cmd = claudeMonitorCommand(endpoint, ev);
+    const cmd = claudeMonitorCommand(endpoint, ev, platform);
     const exists = groups.some((g) => g.hooks.some((h) => h.command === cmd));
     if (exists) continue;
     let firstEmpty = groups.find((g) => !g.matcher);
