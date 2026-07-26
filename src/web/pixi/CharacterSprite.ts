@@ -7,8 +7,8 @@ import { buildEmoteTextures, type EmoteId } from './sprites/emotes.js';
 import type { Direction, PoseKey } from './sprites/types.js';
 import { SPRITE_H } from './sprites/types.js';
 
-/** 48×64 합성 결과를 화면에서 1.5배 — 기존 24×32×3과 같은 72×96 풋프린트. */
-export const PIXEL_SCALE = 1.5;
+/** 32×32 시트 프레임을 화면에서 3배 — 이름표 오프셋(SPRITE_H×스케일=96) 유지. */
+export const PIXEL_SCALE = 3;
 /** 이모트 아트는 여전히 저해상 원본이라 별도 3배 스케일 유지. */
 const EMOTE_SCALE = 3;
 
@@ -70,7 +70,8 @@ export class CharacterSprite extends Container {
   private emoteExpiresAt: number | null = null;
   private emoteElapsedMs = 0;
 
-  private frame: 0 | 1 = 0;
+  /** 걷기 0..5(6프레임 사이클), 타이핑 0..1. */
+  private frame = 0;
   private frameElapsedMs = 0;
   private idleElapsedMs = 0;
 
@@ -180,10 +181,10 @@ export class CharacterSprite extends Container {
 
   private currentPose(): PoseKey {
     if (this.animState === 'walking') {
-      return (this.frame === 0 ? `walk1-${this.direction}` : `walk2-${this.direction}`) as PoseKey;
+      return `walk${((this.frame % 6) + 1) as 1 | 2 | 3 | 4 | 5 | 6}-${this.direction}` as PoseKey;
     }
     if (this.animState === 'sitting') return 'sit';
-    if (this.animState === 'typing') return this.frame === 0 ? 'type1' : 'type2';
+    if (this.animState === 'typing') return this.frame % 2 === 0 ? 'type1' : 'type2';
     return `stand-${this.direction}` as PoseKey;
   }
 
@@ -265,7 +266,7 @@ export class CharacterSprite extends Container {
       : 0;
     if (period > 0 && this.frameElapsedMs >= period) {
       this.frameElapsedMs -= period;
-      this.frame = this.frame === 0 ? 1 : 0;
+      this.frame = (this.frame + 1) % (this.animState === 'walking' ? 6 : 2);
       this.updateTexture();
     }
 
