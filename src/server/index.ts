@@ -17,6 +17,7 @@ import { registerReplayer } from './replayer.js';
 import { createLogTailer } from './logTailer.js';
 import { createTranscriptProcessor } from './transcriptToEvents.js';
 import { installHooks } from './setup/installHooks.js';
+import { collectCapabilities } from './env/capabilities.js';
 import { loadOverrides, saveOverrides, applyOverrides, type CharacterOverrides, overridesPath } from './setup/overrides.js';
 import { ALL_CHARACTER_IDS, type CharacterId } from '../shared/character.js';
 import type { DomainEvent } from '../shared/events.js';
@@ -92,9 +93,17 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
 
   app.get('/config/overrides-path', async () => ({ path: overridesPath() }));
 
-  app.get('/config/models', async () => ({
-    models: ['fable', 'opus', 'sonnet', 'haiku'],
-  }));
+  const MODEL_FAMILIES = ['fable', 'opus', 'sonnet', 'haiku'];
+
+  app.get('/config/models', async () => ({ models: MODEL_FAMILIES }));
+
+  // 스킬/플러그인은 세션 중 거의 불변 — 기동 시 1회 수집해 캐시
+  const capabilities = await collectCapabilities({
+    homeDir: homedir(),
+    projectDir: process.cwd(),
+    models: MODEL_FAMILIES,
+  });
+  app.get('/env/capabilities', async () => capabilities);
 
   app.post<{ Querystring: { scope?: 'user' | 'project' }; Body: { host?: string } }>(
     '/setup/install-hooks',
