@@ -2,7 +2,7 @@ import type { CharacterId } from '../shared/character.js';
 import type { ActivityRule } from '../shared/config.js';
 import type { DomainEvent } from '../shared/events.js';
 
-const AGENT_TYPE_MAP: Record<string, CharacterId> = {
+export const AGENT_TYPE_MAP: Record<string, CharacterId> = {
   // Anthropic built-in / project-agnostic types
   Plan: 'planner-researcher',
   Explore: 'planner-researcher',
@@ -14,6 +14,8 @@ const AGENT_TYPE_MAP: Record<string, CharacterId> = {
   'code-reviewer': 'code-reviewer',
   'docs-manager': 'docs-manager',
 };
+
+export const BUILTIN_AGENT_TYPES: ReadonlySet<string> = new Set(['Plan', 'Explore', 'general-purpose']);
 
 const FALLBACK: CharacterId = 'kim-team-lead';
 
