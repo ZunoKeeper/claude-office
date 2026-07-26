@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { GridDashboard } from './views/GridDashboard.js';
 import { IsometricOffice } from './views/IsometricOffice.js';
 import { ViewSwitcher, type ViewKind } from './views/ViewSwitcher.js';
-import { ReplayControls } from './views/ReplayControls.js';
 import { OnboardingScreen } from './views/OnboardingScreen.js';
 import { SettingsScreen } from './views/SettingsScreen.js';
 import { EventTicker } from './components/EventTicker.js';
@@ -53,7 +52,6 @@ export function App() {
           </span>
         </div>
       </header>
-      <ReplayControls />
       <main className="app-main">
         {showOnboarding ? (
           <OnboardingScreen onComplete={completeOnboarding} />

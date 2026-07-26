@@ -19,7 +19,6 @@ export default defineConfig({
       '^/health$': 'http://localhost:4000',
       '^/config/.*': 'http://localhost:4000',
       '^/env/.*': 'http://localhost:4000',
-      '^/replay/.*': 'http://localhost:4000',
       '/live': { target: 'ws://localhost:4000', ws: true },
     },
   },

@@ -13,7 +13,6 @@ import { createRouter } from './characterRouter.js';
 import { createStateStore } from './stateStore.js';
 import { registerHookReceiver } from './hookReceiver.js';
 import { registerWsHub } from './wsHub.js';
-import { registerReplayer } from './replayer.js';
 import { createLogTailer } from './logTailer.js';
 import { createTranscriptProcessor } from './transcriptToEvents.js';
 import { installHooks } from './setup/installHooks.js';
@@ -41,7 +40,7 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
   const dialogues = await loadDialogues(path.join(configDir, 'dialogue'));
   // Router is wrapped in a stable object so `characterRouter.route` calls
   // dispatch to whichever inner router is current — lets us hot-swap rules
-  // without re-registering hook/replayer handlers.
+  // without re-registering hook handlers.
   let innerRouter = createRouter(rules);
   const router = {
     route: (event: DomainEvent): CharacterId => innerRouter.route(event),
@@ -116,7 +115,6 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
     },
   );
   registerHookReceiver(app, { router, store, dialogues, ws });
-  registerReplayer(app, { store, router });
 
   // Hot-reload config JSONs so seat/rule edits take effect without a full
   // server restart. On any change we re-read, swap the router internals, and

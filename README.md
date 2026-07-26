@@ -30,11 +30,6 @@ clone 직후 아래 한 번이면 Volta 설치 → Node 22 pin → 의존성 설
 2. "전역" 또는 "현재 프로젝트" 선택 → 자동 설치 (curl로 hook 커맨드를 settings.json에 병합)
 3. 이후 Claude Code 세션의 hook 이벤트가 실시간 반영. 트랜스크립트 tail은 기본 활성이므로 진행 중인 세션의 새 활동도 즉시 파이프에 흘러들어옴 (서버 기동 이전의 과거 히스토리는 재생하지 않음 — 중단된 옛 세션의 고아 이벤트 유입 방지).
 
-## 지난 세션 재생
-
-- 상단 재생 컨트롤에 트랜스크립트 파일 경로 입력 (예: `~/.claude/projects/<sanitized-cwd>/<sessionId>.jsonl`)
-- SPD (재생 속도, 1~200) 조절 → ▶ PLAY
-
 ## 뷰 전환
 
 - 상단 [GRID | OFFICE] 토글
