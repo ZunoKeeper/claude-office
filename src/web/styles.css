@@ -157,18 +157,17 @@ html, body {
   50% { box-shadow: 0 0 8px rgba(98,194,111,.8); }
 }
 
-/* 통합 화면 — 상단 가로 캐릭터 패널 + 오피스 캔버스 */
+/* 통합 화면 — 상단 가로 캐릭터 패널 + 오피스 캔버스.
+   캔버스는 가용 폭·높이에 맞춰 스케일되므로 최소 폭을 강제하지 않는다. */
 .office-layout {
   display: flex;
   flex-direction: column;
-  min-width: 920px; /* 캔버스 폭 */
   min-height: 100%;
 }
 
 .office-canvas-area {
   flex: 1;
-  min-width: 920px;
-  padding-top: 8px;
+  padding: 8px 8px 0;
 }
 
 .character-panel {
