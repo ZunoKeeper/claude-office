@@ -175,7 +175,9 @@ html, body {
   flex-shrink: 0;
   padding: 10px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  /* 카드 폭 상한 고정 — 창이 넓어져도 카드가 320px 이상 커지지 않는다 */
+  grid-template-columns: repeat(auto-fill, minmax(280px, 320px));
+  justify-content: center;
   gap: 10px;
   border-bottom: 3px solid var(--ink);
   background: var(--floor-2);
