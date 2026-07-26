@@ -377,15 +377,15 @@ html, body {
   border-top: 3px solid var(--ink);
   background: var(--floor-3);
   margin-bottom: 32px; /* fixed .event-ticker 높이만큼 확보 */
-  max-height: 40vh;
+  max-height: 20vh;
   overflow-y: auto;
 }
 
+/* 좌우 2단 — 왼쪽 고정폭 라벨 컬럼, 오른쪽 칩 영역 (줄바꿈은 오른쪽 안에서만) */
 .cap-row {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 8px;
+  align-items: flex-start;
+  gap: 8px;
 }
 
 /* 대분류 — 티커 톤의 반전 밴드 */
@@ -395,9 +395,18 @@ html, body {
   background: var(--ink);
   color: var(--gold);
   padding: 4px 6px;
-  min-width: 96px;
+  flex: 0 0 110px;
   letter-spacing: 0.5px;
   box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.25);
+}
+
+.cap-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
 }
 
 /* 소분류 — 좌측 보더의 옅은 그룹 상자 */

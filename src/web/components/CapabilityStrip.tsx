@@ -59,6 +59,7 @@ export function CapabilityStrip({ configs }: { configs: CharacterConfig[] }) {
     <div className="capability-strip">
       <div className="cap-row">
         <span className="cap-label">MODELS</span>
+        <div className="cap-content">
         {caps.models.flatMap((family) => {
           const obs = [...new Set(observedModels.filter((m) => m.includes(family)))];
           if (!obs.length) {
@@ -75,9 +76,11 @@ export function CapabilityStrip({ configs }: { configs: CharacterConfig[] }) {
             </span>
           ));
         })}
+        </div>
       </div>
       <div className="cap-row">
         <span className="cap-label">SUB AGENTS</span>
+        <div className="cap-content">
         {agentGroups.map((g) => (
           <span key={g.label} className="cap-group">
             <span className="cap-group-label">{g.label}</span>
@@ -92,9 +95,11 @@ export function CapabilityStrip({ configs }: { configs: CharacterConfig[] }) {
             ))}
           </span>
         ))}
+        </div>
       </div>
       <div className="cap-row">
         <span className="cap-label">SKILLS</span>
+        <div className="cap-content">
         {[...skillGroups.entries()].map(([source, items]) => (
           <span key={source} className="cap-group">
             <span className="cap-group-label">{source}</span>
@@ -105,14 +110,17 @@ export function CapabilityStrip({ configs }: { configs: CharacterConfig[] }) {
             ))}
           </span>
         ))}
+        </div>
       </div>
       <div className="cap-row">
         <span className="cap-label">PLUGINS</span>
+        <div className="cap-content">
         {caps.plugins.map((p) => (
           <span key={`${p.name}@${p.marketplace}`} className="cap-chip" title={`${p.name}@${p.marketplace}`}>
             {p.name}{p.version !== 'unknown' ? ` v${p.version}` : ''}
           </span>
         ))}
+        </div>
       </div>
     </div>
   );
