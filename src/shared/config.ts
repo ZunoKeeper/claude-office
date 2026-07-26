@@ -17,6 +17,17 @@ export interface CharacterConfig {
   spriteSheet: string;
 }
 
+/** 툴 실행 시 캐릭터가 걸어가는 목적지. 좌표는 오피스 씬의 920×510 논리
+ *  좌표계 기준이라 화면 스케일과 무관하게 유지된다. */
+export interface ToolDestination {
+  id: string;
+  label: string;
+  x: number;
+  y: number;
+  /** 이 목적지로 이동을 트리거하는 툴 이름들 */
+  tools: string[];
+}
+
 export interface ActivityRule {
   characterId: CharacterId;
   match: {

@@ -399,6 +399,50 @@ html, body {
   box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.25);
 }
 
+/* 동선(툴 목적지) 마커 — 편집 모드 전용, 드래그로 이동 */
+.dest-marker {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'DotGothic16', monospace;
+  font-size: 11px;
+  line-height: 1.2;
+  color: var(--ink);
+  background: var(--gold);
+  border: 1.5px solid var(--ink);
+  border-radius: 4px;
+  padding: 3px 7px;
+  box-shadow: 2px 2px 0 var(--ink);
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  white-space: nowrap;
+}
+
+.dest-marker.dragging { cursor: grabbing; box-shadow: 1px 1px 0 var(--ink); }
+
+.dest-marker::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  transform: translateX(-50%);
+  border: 7px solid transparent;
+  border-top-color: var(--ink);
+  border-bottom: none;
+}
+
+.dest-marker-flag { color: #a03030; }
+
+.dest-marker-tools {
+  font-size: 8px;
+  color: var(--ink-muted);
+  font-family: 'Press Start 2P', monospace;
+}
+
 /* 말풍선 — 캔버스 밖 HTML 오버레이. 앵커는 프레임 콜백이 좌표를 갱신하는
    0크기 기준점이고, 실제 풍선은 그 위(-100%)에 뜬다. */
 .office-bubble-anchor {

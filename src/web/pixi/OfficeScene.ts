@@ -1,6 +1,6 @@
 import { Application, Assets, Container, type FederatedPointerEvent, Sprite } from 'pixi.js';
 import type { CharacterId, CharacterState } from '../../shared/character.js';
-import type { CharacterConfig } from '../../shared/config.js';
+import type { CharacterConfig, ToolDestination } from '../../shared/config.js';
 import { CharacterSprite } from './CharacterSprite.js';
 
 /**
@@ -20,13 +20,6 @@ const BG_URL = '/office-bg.png';
 
 const Z_KIND_CHARACTER = 3;
 
-/** Tool → screen destination the character walks to when the tool fires. */
-const TOOL_DESTINATIONS: Record<string, { x: number; y: number }> = {
-  Bash: { x: 830, y: 160 },      // pantry / coffee area (top-right)
-  WebFetch: { x: 833, y: 363 },  // meeting table area (right)
-  WebSearch: { x: 833, y: 363 },
-};
-
 function pickDirection(dx: number, dy: number): 'N' | 'S' | 'E' | 'W' {
   if (Math.abs(dx) > Math.abs(dy)) return dx > 0 ? 'E' : 'W';
   return dy > 0 ? 'S' : 'N';
@@ -45,6 +38,8 @@ export class OfficeScene {
   private sprites = new Map<CharacterId, CharacterSprite>();
   private seats = new Map<CharacterId, { x: number; y: number }>();
   private lastActivity = new Map<CharacterId, string | undefined>();
+  /** toolName → 목적지 좌표 (920×510 논리 좌표). setDestinations로 주입. */
+  private toolDests = new Map<string, { x: number; y: number }>();
   private pendingSetCharacters: { states: CharacterState[]; configs: CharacterConfig[] } | null = null;
 
   constructor(private canvas: HTMLCanvasElement) {
@@ -155,7 +150,7 @@ export class OfficeScene {
       const prevTool = this.lastActivity.get(s.id);
       if (currTool !== prevTool) {
         this.lastActivity.set(s.id, currTool);
-        const dest = currTool ? TOOL_DESTINATIONS[currTool] : null;
+        const dest = currTool ? this.toolDests.get(currTool) : null;
         if (dest) {
           void this.moveSpriteScreen(sprite, dest.x, dest.y, 900);
         } else {
@@ -190,6 +185,14 @@ export class OfficeScene {
    *  HTML 이름표 오버레이가 걷는 캐릭터를 따라가는 데 쓰인다. */
   onFramePositions(cb: (positions: Array<{ id: CharacterId; x: number; y: number }>) => void): void {
     this.onFrameCallback = cb;
+  }
+
+  /** 툴 → 목적지 매핑 교체. 이후의 툴 이동부터 새 좌표가 적용된다. */
+  setDestinations(dests: ToolDestination[]): void {
+    this.toolDests.clear();
+    for (const d of dests) {
+      for (const tool of d.tools) this.toolDests.set(tool, { x: d.x, y: d.y });
+    }
   }
 
   /** Optimistic update so the browser reflects a direction change immediately;

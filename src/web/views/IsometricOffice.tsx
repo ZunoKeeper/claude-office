@@ -4,7 +4,7 @@ import { PIXEL_SCALE } from '../pixi/CharacterSprite.js';
 import { SPRITE_H } from '../pixi/sprites/types.js';
 import { useCharacterStore } from '../store/characterStore.js';
 import { ALL_CHARACTER_IDS, type CharacterId, type CharacterState } from '../../shared/character.js';
-import type { CharacterConfig, SeatDirection, SeatPose } from '../../shared/config.js';
+import type { CharacterConfig, SeatDirection, SeatPose, ToolDestination } from '../../shared/config.js';
 import { OfficeOverlay } from './OfficeOverlay.js';
 
 function empty(id: CharacterConfig['id']): CharacterState {
@@ -32,6 +32,14 @@ function patchCharacter(id: CharacterId, body: Record<string, unknown>): void {
   }).catch(() => { /* configUpdated WS reply re-syncs */ });
 }
 
+function patchDestination(id: string, x: number, y: number): void {
+  void fetch(`/config/destinations/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ x, y }),
+  }).catch(() => { /* configUpdated WS reply re-syncs */ });
+}
+
 // 씬 내부 로직 좌표계 (OfficeScene CANVAS_W/H와 동일). 브라우저 크기에 따라
 // 이 스테이지 전체를 CSS transform으로 확대해 배경·좌석·오버레이를 함께 스케일한다.
 const STAGE_W = 920;
@@ -42,8 +50,10 @@ export function IsometricOffice({ configs }: { configs: CharacterConfig[] }) {
   const sceneRef = useRef<OfficeScene | null>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const characters = useCharacterStore((s) => s.characters);
+  const configVersion = useCharacterStore((s) => s.configVersion);
   const [editMode, setEditMode] = useState(false);
   const [selectedId, setSelectedId] = useState<CharacterId | null>(null);
+  const [destinations, setDestinations] = useState<ToolDestination[]>([]);
   const [fit, setFit] = useState({ scale: 1, offsetX: 0 });
   const fitRef = useRef(fit);
   fitRef.current = fit;
@@ -108,6 +118,15 @@ export function IsometricOffice({ configs }: { configs: CharacterConfig[] }) {
     const states = ALL_CHARACTER_IDS.map((id) => characters[id] ?? empty(id));
     sceneRef.current?.setCharacters(states, configs);
   }, [characters, configs]);
+
+  // 동선(툴 목적지) — configUpdated 브로드캐스트마다 재취득해 씬에 주입
+  useEffect(() => {
+    fetch('/config/destinations').then((r) => r.json()).then(setDestinations).catch(() => setDestinations([]));
+  }, [configVersion]);
+
+  useEffect(() => {
+    sceneRef.current?.setDestinations(destinations);
+  }, [destinations]);
 
   useEffect(() => {
     sceneRef.current?.setEditMode(editMode);
@@ -178,6 +197,12 @@ export function IsometricOffice({ configs }: { configs: CharacterConfig[] }) {
         );
       })}
 
+      {/* 동선 마커 — 편집 모드에서 드래그로 툴 목적지를 옮긴다. 좌표는 논리
+          좌표계로 저장되므로 화면 스케일과 무관하게 유지된다. */}
+      {editMode && destinations.map((d) => (
+        <DestMarker key={d.id} dest={d} fit={fit} wrapRef={wrapRef} />
+      ))}
+
       {/* 편집 버튼은 스케일 밖 — 확대해도 UI 크기가 일정하다 */}
       <div style={{
         position: 'absolute', top: 8, right: 8, zIndex: 10, display: 'flex', gap: 6,
@@ -197,6 +222,51 @@ export function IsometricOffice({ configs }: { configs: CharacterConfig[] }) {
           {editMode ? '✎ 편집 중 · 클릭해 저장' : '✎ 위치 편집'}
         </button>
       </div>
+    </div>
+  );
+}
+
+/** 편집 모드에서 드래그 가능한 툴 목적지 마커. 화면 좌표를 스테이지 스케일로
+ *  나눠 논리 좌표(920×510)로 저장하므로 리사이즈와 무관하게 동선이 유지된다. */
+function DestMarker({ dest, fit, wrapRef }: {
+  dest: ToolDestination;
+  fit: { scale: number; offsetX: number };
+  wrapRef: React.RefObject<HTMLDivElement>;
+}) {
+  const [pos, setPos] = useState({ x: dest.x, y: dest.y });
+  const [dragging, setDragging] = useState(false);
+  useEffect(() => { setPos({ x: dest.x, y: dest.y }); }, [dest.x, dest.y]);
+
+  function toLogical(e: React.PointerEvent): { x: number; y: number } {
+    const rect = wrapRef.current!.getBoundingClientRect();
+    return {
+      x: Math.max(0, Math.min(STAGE_W, (e.clientX - rect.left - fit.offsetX) / fit.scale)),
+      y: Math.max(0, Math.min(STAGE_H, (e.clientY - rect.top) / fit.scale)),
+    };
+  }
+
+  return (
+    <div
+      className={`dest-marker ${dragging ? 'dragging' : ''}`}
+      style={{ left: pos.x * fit.scale + fit.offsetX, top: pos.y * fit.scale }}
+      title={`이동 동선: ${dest.tools.join(', ')} 실행 시 이 지점으로 걸어감 — 드래그해 이동`}
+      onPointerDown={(e) => {
+        e.preventDefault();
+        try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* 합성 이벤트 등 캡처 불가 시에도 드래그는 동작 */ }
+        setDragging(true);
+      }}
+      onPointerMove={(e) => { if (dragging) setPos(toLogical(e)); }}
+      onPointerUp={(e) => {
+        if (!dragging) return;
+        setDragging(false);
+        try { e.currentTarget.releasePointerCapture(e.pointerId); } catch { /* ditto */ }
+        const p = toLogical(e);
+        setPos(p);
+        patchDestination(dest.id, Math.round(p.x), Math.round(p.y));
+      }}
+    >
+      <span className="dest-marker-flag">⚑</span> {dest.label}
+      <span className="dest-marker-tools">{dest.tools.join(' · ')}</span>
     </div>
   );
 }

@@ -19,6 +19,7 @@ import { createTranscriptProcessor } from './transcriptToEvents.js';
 import { installHooks } from './setup/installHooks.js';
 import { collectCapabilities } from './env/capabilities.js';
 import { loadOverrides, saveOverrides, applyOverrides, type CharacterOverrides, overridesPath } from './setup/overrides.js';
+import { loadDestinationsBase, loadDestinationOverrides, saveDestinationOverrides, applyDestinationOverrides } from './setup/destinations.js';
 import { ALL_CHARACTER_IDS, type CharacterId } from '../shared/character.js';
 import type { DomainEvent } from '../shared/events.js';
 
@@ -93,6 +94,35 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
 
   app.get('/config/overrides-path', async () => ({ path: overridesPath() }));
 
+  // 툴 실행 시 캐릭터가 걸어가는 목적지(동선). 좌표는 920×510 논리 좌표계 —
+  // 클라이언트가 화면 스케일에 맞춰 변환하므로 리사이즈와 무관하게 유지된다.
+  let destBase = await loadDestinationsBase(configDir);
+  const destOverrides = await loadDestinationOverrides();
+  let destinations = applyDestinationOverrides(destBase, destOverrides);
+
+  app.get('/config/destinations', async () => destinations);
+
+  app.patch<{ Params: { id: string }; Body: { x?: number; y?: number } }>(
+    '/config/destinations/:id',
+    async (req, reply) => {
+      const dest = destinations.find((d) => d.id === req.params.id);
+      if (!dest) {
+        reply.code(404);
+        return { ok: false, error: `unknown destination: ${req.params.id}` };
+      }
+      const { x, y } = req.body ?? {};
+      if (typeof x !== 'number' || typeof y !== 'number' || !Number.isFinite(x) || !Number.isFinite(y)) {
+        reply.code(400);
+        return { ok: false, error: 'x/y must be finite numbers' };
+      }
+      destOverrides[dest.id] = { x: Math.round(x), y: Math.round(y) };
+      destinations = applyDestinationOverrides(destBase, destOverrides);
+      const target = await saveDestinationOverrides(destOverrides);
+      ws.broadcast({ kind: 'configUpdated' });
+      return { ok: true, target, destination: destinations.find((d) => d.id === dest.id) };
+    },
+  );
+
   const MODEL_FAMILIES = ['fable', 'opus', 'sonnet', 'haiku'];
 
   app.get('/config/models', async () => ({ models: MODEL_FAMILIES }));
@@ -126,7 +156,11 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
   // server restart. On any change we re-read, swap the router internals, and
   // notify clients so they re-fetch /config/characters.
   const configWatcher = chokidar.watch(
-    [path.join(configDir, 'characters.json'), path.join(configDir, 'activityRules.json')],
+    [
+      path.join(configDir, 'characters.json'),
+      path.join(configDir, 'activityRules.json'),
+      path.join(configDir, 'toolDestinations.json'),
+    ],
     { ignoreInitial: true, awaitWriteFinish: { stabilityThreshold: 120, pollInterval: 40 } },
   );
   configWatcher.on('change', async () => {
@@ -136,6 +170,8 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
       rules = reloaded.rules;
       characters = applyOverrides(baseCharacters, overrides);
       innerRouter = createRouter(rules);
+      destBase = await loadDestinationsBase(configDir);
+      destinations = applyDestinationOverrides(destBase, destOverrides);
       ws?.broadcast({ kind: 'configUpdated' });
       app.log.info('config hot-reloaded');
     } catch (err) {
