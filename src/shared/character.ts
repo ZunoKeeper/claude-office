@@ -1,5 +1,5 @@
 export type CharacterId =
-  | 'kim-team-lead'
+  | 'team-lead'
   | 'planner-researcher'
   | 'tester'
   | 'debugger'
@@ -7,7 +7,7 @@ export type CharacterId =
   | 'docs-manager';
 
 export const ALL_CHARACTER_IDS: readonly CharacterId[] = [
-  'kim-team-lead',
+  'team-lead',
   'planner-researcher',
   'tester',
   'debugger',

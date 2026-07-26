@@ -1,0 +1,77 @@
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { createStateStore } from '../../src/server/stateStore.js';
+import { startAmbientDialogue } from '../../src/server/dialogue/ambient.js';
+import { pickLine } from '../../src/server/dialogue/pool.js';
+import type { DialogueEntry } from '../../src/shared/dialogue.js';
+import type { CharacterId } from '../../src/shared/character.js';
+
+const POOL: DialogueEntry[] = [
+  { characterId: 'team-lead', trigger: { eventType: 'ambient', status: 'working' }, templates: ['일하는 중'] },
+  { characterId: 'team-lead', trigger: { eventType: 'ambient', status: 'error' }, templates: ['에러 잡는 중'] },
+];
+
+function dialogues(): Map<CharacterId, DialogueEntry[]> {
+  const m = new Map<CharacterId, DialogueEntry[]>();
+  m.set('team-lead', POOL);
+  return m;
+}
+
+afterEach(() => {
+  vi.useRealTimers();
+});
+
+describe('ambient trigger matching', () => {
+  it('matches only the entry for the current status', () => {
+    const ctx = { queueDepth: 0, recentError: false, slots: {} };
+    expect(pickLine(POOL, { ...ctx, event: { type: 'ambient', status: 'working' } })).toBe('일하는 중');
+    expect(pickLine(POOL, { ...ctx, event: { type: 'ambient', status: 'error' } })).toBe('에러 잡는 중');
+    expect(pickLine(POOL, { ...ctx, event: { type: 'ambient', status: 'thinking' } })).toBeNull();
+  });
+
+  it('matches toolName given as an array (Bash/PowerShell 겸용)', () => {
+    const pool: DialogueEntry[] = [
+      { characterId: 'tester', trigger: { eventType: 'tool.pre', toolName: ['Bash', 'PowerShell'] }, templates: ['테스트!'] },
+    ];
+    const ctx = { queueDepth: 0, recentError: false, slots: {} };
+    const ev = (toolName: string) =>
+      ({ type: 'tool.pre', ts: 0, sessionId: 's', agentId: 'a', toolName, input: {} }) as const;
+    expect(pickLine(pool, { ...ctx, event: ev('PowerShell') })).toBe('테스트!');
+    expect(pickLine(pool, { ...ctx, event: ev('Bash') })).toBe('테스트!');
+    expect(pickLine(pool, { ...ctx, event: ev('Read') })).toBeNull();
+  });
+});
+
+describe('startAmbientDialogue', () => {
+  it('emits lines repeatedly while a character stays active', () => {
+    vi.useFakeTimers();
+    const store = createStateStore(['team-lead']);
+    store.applyEvent('team-lead', { type: 'tool.pre', ts: Date.now(), sessionId: 's', agentId: 'a', toolName: 'Edit', input: {} });
+    expect(store.get('team-lead').status).toBe('working');
+
+    const stop = startAmbientDialogue(store, dialogues(), { tickMs: 100, minGapMs: 500, jitterMs: 0, lineTtlMs: 1000 });
+    try {
+      // 첫 due 등록(최대 2.7s) + 발화까지 진행
+      vi.advanceTimersByTime(3000);
+      const first = store.get('team-lead').lastLine;
+      expect(first?.text).toBe('일하는 중');
+
+      vi.advanceTimersByTime(600);
+      const second = store.get('team-lead').lastLine;
+      expect(second?.ts).toBeGreaterThan(first!.ts);
+    } finally {
+      stop();
+    }
+  });
+
+  it('stays silent for idle characters', () => {
+    vi.useFakeTimers();
+    const store = createStateStore(['team-lead']);
+    const stop = startAmbientDialogue(store, dialogues(), { tickMs: 100, minGapMs: 200, jitterMs: 0 });
+    try {
+      vi.advanceTimersByTime(5000);
+      expect(store.get('team-lead').lastLine).toBeUndefined();
+    } finally {
+      stop();
+    }
+  });
+});

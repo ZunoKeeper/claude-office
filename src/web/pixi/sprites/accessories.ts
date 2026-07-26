@@ -121,7 +121,7 @@ const docs: AccessorySet = {
 };
 
 export const ACCESSORIES: Record<CharacterId, AccessorySet> = {
-  'kim-team-lead': kim,
+  'team-lead': kim,
   'planner-researcher': planner,
   'tester': tester,
   'debugger': dbg,

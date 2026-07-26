@@ -1,4 +1,105 @@
 [
-  { "characterId": "docs-manager", "trigger": { "eventType": "tool.pre" }, "templates": ["문서 갱신할게요", "{fileName} 정리 중"] },
-  { "characterId": "docs-manager", "trigger": { "eventType": "tool.post" }, "templates": ["업데이트 완료"] }
+  { "characterId": "docs-manager", "trigger": { "eventType": "session.start" },
+    "templates": [
+      "오늘의 원고… 아니, 문서 시작합니다.",
+      "펜은 키보드보다 강하다… 여긴 둘 다지만.",
+      "목차부터 잡고 갑니다."
+    ] },
+  { "characterId": "docs-manager", "trigger": { "eventType": "session.stop" },
+    "templates": [
+      "오늘 쓴 문서, 내일 읽어도 부끄럽지 않기를.",
+      "탈고! …는 아니고 초고 마감."
+    ] },
+  { "characterId": "docs-manager", "trigger": { "eventType": "tool.pre", "toolName": "Write" },
+    "templates": [
+      "{fileName} 정리 중",
+      "{fileName} 집필 시작.",
+      "{fileName}… 첫 문장이 제일 어렵죠.",
+      "새 문서의 탄생입니다."
+    ] },
+  { "characterId": "docs-manager", "trigger": { "eventType": "tool.pre", "toolName": "Edit" },
+    "templates": [
+      "{fileName} 퇴고 들어갑니다.",
+      "문장 다듬는 중…",
+      "이 단락, 더 짧게 쓸 수 있어요.",
+      "오탈자 사냥 시간."
+    ] },
+  { "characterId": "docs-manager", "trigger": { "eventType": "tool.pre", "toolName": "Read" },
+    "templates": [
+      "{fileName} 읽어보고 문체 맞출게요.",
+      "기존 문서 톤부터 파악하고요.",
+      "자료 조사도 글쓰기의 일부죠."
+    ] },
+  { "characterId": "docs-manager", "trigger": { "eventType": "tool.pre" },
+    "templates": [
+      "문서 갱신할게요",
+      "기록은 남기는 자의 것.",
+      "이것도 문서화 해두죠."
+    ] },
+  { "characterId": "docs-manager", "trigger": { "eventType": "tool.post", "conditions": { "errorRecent": true } },
+    "templates": [
+      "문서와 코드가 어긋났네요. 맞춥니다.",
+      "링크가 깨졌군요. 수선합니다.",
+      "이 부분, 사실 확인이 필요해요."
+    ] },
+  { "characterId": "docs-manager", "trigger": { "eventType": "tool.post" },
+    "templates": [
+      "업데이트 완료",
+      "한 단락 완성. 읽어보실래요?",
+      "문서가 코드를 따라잡았습니다.",
+      "오늘의 분량 달성."
+    ] },
+  { "characterId": "docs-manager", "trigger": { "eventType": "agent.start" },
+    "templates": [
+      "집필 의뢰 들어왔네요.",
+      "무엇을 기록해드릴까요.",
+      "가이드 문의는 제 담당이죠."
+    ] },
+  { "characterId": "docs-manager", "trigger": { "eventType": "agent.stop" },
+    "templates": [
+      "원고 넘겼습니다.",
+      "답변 정리해서 전달 완료."
+    ] },
+  { "characterId": "docs-manager", "trigger": { "eventType": "ambient", "status": "working" },
+    "templates": [
+      "{label} 집필 중… 흐름 좋아요.",
+      "이 문장, 능동태로 바꾸면 더 낫겠어요.",
+      "{elapsedS}초째 원고와 씨름 중.",
+      "독자는 바쁘죠. 결론부터 씁니다.",
+      "예제 코드가 문단 열 개보다 낫죠.",
+      "용어 통일 검사 중… '유저'? '사용자'?",
+      "표로 정리하면 한눈에 들어오겠는데요.",
+      "각주를 달까, 본문에 녹일까.",
+      "READ ME라고 쓰고 아무도 안 읽는 문서라 읽는다…",
+      "스크린샷도 최신으로 갈아끼웁니다.",
+      "이 챕터는 다이어그램이 필요해요.",
+      "쓰다 보니 코드 버그를 찾았네요?"
+    ] },
+  { "characterId": "docs-manager", "trigger": { "eventType": "ambient", "status": "thinking" },
+    "templates": [
+      "이 개념을 한 문장으로 설명하려면…",
+      "초보자 눈높이로… 다시 써볼까.",
+      "제목이 반인데, 제목이 안 나오네.",
+      "튜토리얼로 갈까, 레퍼런스로 갈까.",
+      "이 비유가 오히려 헷갈리게 하나?",
+      "문서 구조를 트리로 그려보는 중.",
+      "독자가 여기서 무엇을 궁금해할까."
+    ] },
+  { "characterId": "docs-manager", "trigger": { "eventType": "ambient", "status": "blocked" },
+    "templates": [
+      "기술 검수 대기 중… 펜을 내려놓습니다.",
+      "스펙이 확정돼야 문서를 쓰죠.",
+      "작성 소재 기다리는 중. 목차나 다듬죠.",
+      "인터뷰(질문) 답변 대기 중입니다.",
+      "막힌 김에 오탈자 사냥이나."
+    ] },
+  { "characterId": "docs-manager", "trigger": { "eventType": "ambient", "status": "error" },
+    "templates": [
+      "문서대로 했는데 안 된다면… 문서가 틀린 거죠.",
+      "이 에러, 트러블슈팅 섹션에 추가합니다.",
+      "재현 스텝을 문서로 남겨두면 다음에 편해요.",
+      "누적 {errors}건… FAQ감이네요.",
+      "에러 메시지도 문장입니다. 더 친절하게.",
+      "정오표 갱신 중."
+    ] }
 ]

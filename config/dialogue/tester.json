@@ -1,5 +1,106 @@
 [
-  { "characterId": "tester", "trigger": { "eventType": "tool.pre" }, "templates": ["테스트 돌립니다~"] },
-  { "characterId": "tester", "trigger": { "eventType": "tool.post", "conditions": { "errorRecent": true } }, "templates": ["어? 여기 하나 깨졌네요"] },
-  { "characterId": "tester", "trigger": { "eventType": "tool.post" }, "templates": ["통과!", "이번엔 깨끗하네요"] }
+  { "characterId": "tester", "trigger": { "eventType": "session.start" },
+    "templates": [
+      "오늘도 버그 잡으러 왔습니다.",
+      "테스트 환경 워밍업 완료.",
+      "커버리지 몇 %부터 시작하나 볼까요."
+    ] },
+  { "characterId": "tester", "trigger": { "eventType": "session.stop" },
+    "templates": [
+      "오늘 잡은 버그는 오늘 안에. 퇴근!",
+      "그린 상태로 마감. 완벽해요."
+    ] },
+  { "characterId": "tester", "trigger": { "eventType": "tool.pre", "toolName": ["Bash", "PowerShell"] },
+    "templates": [
+      "테스트 돌립니다~",
+      "{command}… 스위트 가동!",
+      "자, 다 걸리기만 해봐라.",
+      "레드냐 그린이냐, 그것이 문제로다.",
+      "전체 스위트 한 바퀴 돌게요.",
+      "회귀 테스트도 잊지 않았죠."
+    ] },
+  { "characterId": "tester", "trigger": { "eventType": "tool.pre" },
+    "templates": [
+      "테스트 돌립니다~",
+      "케이스 하나 추가하고요.",
+      "이 경계값이 수상한데…",
+      "픽스처부터 정리하죠."
+    ] },
+  { "characterId": "tester", "trigger": { "eventType": "tool.post", "conditions": { "errorRecent": true } },
+    "templates": [
+      "어? 여기 하나 깨졌네요",
+      "레드! 레드입니다!",
+      "찾았다, 요 녀석.",
+      "역시 수상하다 했어요.",
+      "assertion이 비명을 지르네요.",
+      "이 실패는 좋은 실패예요. 버그를 찾았으니까."
+    ] },
+  { "characterId": "tester", "trigger": { "eventType": "tool.post" },
+    "templates": [
+      "통과!",
+      "이번엔 깨끗하네요",
+      "올 그린. 기분 좋다.",
+      "85개 전부 통과입니다.",
+      "플레이키도 없고, 완벽."
+    ] },
+  { "characterId": "tester", "trigger": { "eventType": "agent.start" },
+    "templates": [
+      "검증 의뢰 접수!",
+      "QA 모드 들어갑니다.",
+      "제 눈은 못 속이죠."
+    ] },
+  { "characterId": "tester", "trigger": { "eventType": "agent.stop" },
+    "templates": [
+      "검증 완료. 리포트 넘겼습니다.",
+      "테스트 결과 정리 끝."
+    ] },
+  { "characterId": "tester", "trigger": { "eventType": "agent.start", "conditions": { "queueDepthGte": 2 } },
+    "templates": [
+      "검증 대기 {queueDepth}건… 줄 서세요.",
+      "밀려드는 테스트 요청, 좋은 징조죠."
+    ] },
+  { "characterId": "tester", "trigger": { "eventType": "ambient", "status": "working" },
+    "templates": [
+      "테스트 러너 돌아가는 중… ⏳",
+      "{elapsedS}초째… 스위트가 기네요.",
+      "케이스 하나하나 확인 중.",
+      "엣지 케이스: null, 빈 문자열, 음수… 다 넣어봅니다.",
+      "모킹이 실제랑 다르면 안 되는데.",
+      "이 테스트 이름, 더 명확하게 바꿔야겠어요.",
+      "커버리지 올라가는 소리 들리시나요.",
+      "실패하는 테스트부터 쓰는 게 원칙이죠.",
+      "{label} 검증 중…",
+      "어… 이거 왜 통과하지? 의심스러운데.",
+      "플레이키 테스트는 용서 못 해요.",
+      "돌리고, 또 돌리고."
+    ] },
+  { "characterId": "tester", "trigger": { "eventType": "ambient", "status": "thinking" },
+    "templates": [
+      "이 함수, 어떻게 깨뜨릴까…",
+      "테스트가 없는 코드는 믿을 수 없죠.",
+      "경계값이 어디더라… 0? 1? MAX_INT?",
+      "이건 단위로 갈까, 통합으로 갈까.",
+      "재현 조건을 좁히는 중…",
+      "이 시나리오도 커버해야 하나?",
+      "타이밍 이슈 같은데… 증명이 어렵네."
+    ] },
+  { "characterId": "tester", "trigger": { "eventType": "ambient", "status": "blocked" },
+    "templates": [
+      "테스트 환경이 안 떠서 대기 중…",
+      "픽스처 데이터 기다리는 중입니다.",
+      "CI가 밀렸네요. 줄 서서 기다립니다.",
+      "의존성이 풀려야 검증을 하죠…",
+      "대기 시간에 테스트 계획이나 다듬죠."
+    ] },
+  { "characterId": "tester", "trigger": { "eventType": "ambient", "status": "error" },
+    "templates": [
+      "실패 로그 분석 중… 어디 보자.",
+      "재현됐어요! 이제 잡을 수 있습니다.",
+      "이 assertion, 메시지가 불친절하네.",
+      "기대값과 실제값이 한 끗 차이인데…",
+      "누적 {errors}번째 실패… 패턴이 보여요.",
+      "다시 돌려보면 통과? 그건 더 무서운데.",
+      "버그 재현 스텝 기록해둡니다.",
+      "최소 재현 케이스로 줄이는 중."
+    ] }
 ]

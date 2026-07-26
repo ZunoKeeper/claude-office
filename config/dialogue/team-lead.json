@@ -1,0 +1,152 @@
+[
+  { "characterId": "team-lead", "trigger": { "eventType": "session.start" },
+    "templates": [
+      "오늘도 시작해볼까요...",
+      "자, 뭘 해달라시는지…",
+      "커피 한 잔 하고 시작하죠.",
+      "출근 도장 찍었습니다. 오늘 목표는 무사 퇴근.",
+      "새 세션이군요. 이번엔 순탄하길.",
+      "다들 자리에 있죠? 갑니다."
+    ] },
+  { "characterId": "team-lead", "trigger": { "eventType": "session.stop" },
+    "templates": [
+      "수고들 하셨습니다. 마감!",
+      "오늘은 여기까지. 내일 봅시다.",
+      "세션 종료. 커밋은 다 됐겠죠…?",
+      "퇴근! 알림 끄고 갑니다."
+    ] },
+  { "characterId": "team-lead", "trigger": { "eventType": "user.prompt" },
+    "templates": [
+      "음, {promptFirst20}... 이거 어떻게 나눌까",
+      "{promptFirst20}… 접수했습니다.",
+      "오케이, {promptFirst20}… 감 잡았어요.",
+      "이번 요청은 {promptFirst20}… 흠.",
+      "{promptFirst20}… 일단 쪼개서 봅시다.",
+      "새 지시 도착. 누구한테 맡기지?",
+      "요구사항 읽는 중… 행간도 읽어야죠.",
+      "이건 생각보다 일이 커질 수도 있겠는데요."
+    ] },
+  { "characterId": "team-lead", "trigger": { "eventType": "tool.pre", "toolName": "Edit" },
+    "templates": [
+      "{fileName} 직접 고칩니다.",
+      "여기 한 줄만 바꾸면… 아마도.",
+      "{fileName} 수정 들어갑니다.",
+      "PM이 코드 만지면 안 된다는 법 있나요.",
+      "살짝만 손보겠습니다."
+    ] },
+  { "characterId": "team-lead", "trigger": { "eventType": "tool.pre", "toolName": "Write" },
+    "templates": [
+      "{fileName} 새로 만듭니다.",
+      "파일 하나 추가요.",
+      "밑그림부터 그려두죠.",
+      "이건 새 파일이 낫겠어요."
+    ] },
+  { "characterId": "team-lead", "trigger": { "eventType": "tool.pre", "toolName": "Read" },
+    "templates": [
+      "{fileName} 좀 읽어볼게요.",
+      "코드부터 파악하고요.",
+      "어디 보자…",
+      "맥락 확인 중입니다."
+    ] },
+  { "characterId": "team-lead", "trigger": { "eventType": "tool.pre", "toolName": ["Bash", "PowerShell"] },
+    "templates": [
+      "터미널 갑니다: {command}",
+      "명령어 하나 날릴게요.",
+      "{command}… 실행!",
+      "이건 셸에서 해결하죠.",
+      "돌려보면 알겠죠."
+    ] },
+  { "characterId": "team-lead", "trigger": { "eventType": "tool.pre" },
+    "templates": [
+      "제가 직접 처리하죠.",
+      "이건 금방 끝나요.",
+      "하나씩 갑니다.",
+      "잠깐, 이거 먼저.",
+      "손이 빈 김에 제가."
+    ] },
+  { "characterId": "team-lead", "trigger": { "eventType": "tool.post", "conditions": { "errorRecent": true } },
+    "templates": [
+      "어... 이거 왜 안 되지",
+      "음? 방금 뭐가 터졌는데요.",
+      "괜찮아요, 계획대로예요. (계획 수정 중)",
+      "침착하게… 로그부터 봅시다.",
+      "이거 제 탓 아니죠? …제 탓이네요.",
+      "한 번은 실패해줘야 진짜죠."
+    ] },
+  { "characterId": "team-lead", "trigger": { "eventType": "tool.post" },
+    "templates": [
+      "좋아요, 다음.",
+      "하나 끝.",
+      "예상대로 됐네요.",
+      "이 정도면 순항이죠.",
+      "체크. 넘어갑니다."
+    ] },
+  { "characterId": "team-lead", "trigger": { "eventType": "agent.start" },
+    "templates": [
+      "{agentType} 팀, 부탁해요!",
+      "이건 전문가에게 맡기죠 — {agentType}.",
+      "위임합니다. 저는 전체 그림을 봐야죠.",
+      "{agentType} 쪽으로 티켓 넘겼습니다.",
+      "분업이 곧 속도죠."
+    ] },
+  { "characterId": "team-lead", "trigger": { "eventType": "agent.stop" },
+    "templates": [
+      "보고 잘 받았습니다.",
+      "역시 맡기길 잘했네요.",
+      "결과 확인했습니다. 다음 단계로."
+    ] },
+  { "characterId": "team-lead", "trigger": { "eventType": "agent.start", "conditions": { "queueDepthGte": 2 } },
+    "templates": [
+      "대기열이 {queueDepth}개… 오늘 야근인가요.",
+      "{queueDepth}건 밀렸습니다. 우선순위 정리하죠.",
+      "티켓이 쌓이네요. 심호흡."
+    ] },
+  { "characterId": "team-lead", "trigger": { "eventType": "ambient", "status": "working" },
+    "templates": [
+      "{label} 진행 중… 순조로워요.",
+      "집중, 집중…",
+      "{elapsedS}초째 달리는 중입니다.",
+      "이 부분만 넘기면 반은 온 거예요.",
+      "타이핑 소리 좋죠? 일이 되는 소리예요.",
+      "중간 점검… 방향 맞네요.",
+      "지금 흐름 좋습니다. 말 걸지 마세요.",
+      "{toolName} 작업이 좀 걸리네요.",
+      "한 줄 한 줄이 다 돈이죠.",
+      "이게 되면 진짜 편해질 텐데.",
+      "커밋 메시지를 뭐라고 쓰지…",
+      "슬슬 감이 오는데요.",
+      "진행률… 대충 70%? 아마도.",
+      "총 {calls}번째 툴 호출이네요. 오늘 바쁘다."
+    ] },
+  { "characterId": "team-lead", "trigger": { "eventType": "ambient", "status": "thinking" },
+    "templates": [
+      "잠깐, 생각 좀…",
+      "이걸 이렇게 하면… 아니지.",
+      "설계가 반이에요. 서두르지 맙시다.",
+      "트레이드오프가 고민이네요.",
+      "화이트보드가 필요한 순간.",
+      "머릿속에서 시뮬레이션 돌리는 중.",
+      "간단한 길과 옳은 길 사이…",
+      "음… 이 방법이 맞나?"
+    ] },
+  { "characterId": "team-lead", "trigger": { "eventType": "ambient", "status": "blocked" },
+    "templates": [
+      "승인 대기 중… 커피나 마실까요.",
+      "여기서 잠시 막혔네요.",
+      "입력이 필요합니다. 기다리는 중.",
+      "블로킹 이슈 발생. 우회로 탐색 중.",
+      "누가 이 매듭 좀 풀어줘요.",
+      "대기도 업무의 일부죠… 아마."
+    ] },
+  { "characterId": "team-lead", "trigger": { "eventType": "ambient", "status": "error" },
+    "templates": [
+      "에러 로그 정독 중입니다…",
+      "이거 어제도 본 에러 같은데.",
+      "스택트레이스가 소설책이네요.",
+      "원인 찾으면 바로 복구합니다.",
+      "괜찮습니다. 다 과정이에요.",
+      "누적 에러 {errors}건… 기록 갱신인가.",
+      "재현부터 해봅시다.",
+      "심호흡… 다시 갑니다."
+    ] }
+]

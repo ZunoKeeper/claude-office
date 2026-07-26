@@ -24,7 +24,7 @@ function slotsFor(
   slots.queueDepth = charState.queue.length;
   if (event.type === 'tool.pre') {
     const io = (event.input ?? {}) as Record<string, unknown>;
-    if (typeof io.file_path === 'string') slots.fileName = io.file_path.split('/').pop() ?? '';
+    if (typeof io.file_path === 'string') slots.fileName = io.file_path.split(/[\\/]/).pop() ?? '';
     if (typeof io.command === 'string') slots.command = io.command.slice(0, 40);
     if (typeof io.pattern === 'string') slots.pattern = io.pattern;
   }

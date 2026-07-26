@@ -36,25 +36,25 @@ describe('characterRouter', () => {
     expect(router.route({ type: 'agent.start', ts: 0, sessionId: 's', agentType: 'stabilizer', agentId: 'a' })).toBe('debugger');
   });
 
-  it('agent.start(statusline-setup) → kim-team-lead (명시 매핑)', () => {
-    expect(router.route({ type: 'agent.start', ts: 0, sessionId: 's', agentType: 'statusline-setup', agentId: 'a' })).toBe('kim-team-lead');
+  it('agent.start(statusline-setup) → team-lead (명시 매핑)', () => {
+    expect(router.route({ type: 'agent.start', ts: 0, sessionId: 's', agentType: 'statusline-setup', agentId: 'a' })).toBe('team-lead');
   });
 
-  it('agent.start(unknown type) → kim-team-lead (fallback)', () => {
-    expect(router.route({ type: 'agent.start', ts: 0, sessionId: 's', agentType: 'mystery-agent', agentId: 'a' })).toBe('kim-team-lead');
+  it('agent.start(unknown type) → team-lead (fallback)', () => {
+    expect(router.route({ type: 'agent.start', ts: 0, sessionId: 's', agentType: 'mystery-agent', agentId: 'a' })).toBe('team-lead');
   });
 
   it('제거된 고아 정의(tester/debugger 정확명)는 폴백으로 라우팅', () => {
-    expect(router.route({ type: 'agent.start', ts: 0, sessionId: 's', agentType: 'tester', agentId: 'a' })).toBe('kim-team-lead');
-    expect(router.route({ type: 'agent.start', ts: 0, sessionId: 's', agentType: 'docs-manager', agentId: 'a' })).toBe('kim-team-lead');
+    expect(router.route({ type: 'agent.start', ts: 0, sessionId: 's', agentType: 'tester', agentId: 'a' })).toBe('team-lead');
+    expect(router.route({ type: 'agent.start', ts: 0, sessionId: 's', agentType: 'docs-manager', agentId: 'a' })).toBe('team-lead');
   });
 
   it('agent.start(general-purpose) → code-reviewer', () => {
     expect(router.route({ type: 'agent.start', ts: 0, sessionId: 's', agentType: 'general-purpose', agentId: 'a' })).toBe('code-reviewer');
   });
 
-  it('Write .ts → kim-team-lead (no code-file rule; falls back)', () => {
-    expect(router.route(ev({ toolName: 'Write', input: { file_path: '/a/b.ts' } }))).toBe('kim-team-lead');
+  it('Write .ts → team-lead (no code-file rule; falls back)', () => {
+    expect(router.route(ev({ toolName: 'Write', input: { file_path: '/a/b.ts' } }))).toBe('team-lead');
   });
 
   it('Write .md → docs-manager', () => {
@@ -69,11 +69,11 @@ describe('characterRouter', () => {
     expect(router.route(ev({ toolName: 'Bash', input: { command: 'grep -r foo src/' } }))).toBe('debugger');
   });
 
-  it('unknown → kim-team-lead (fallback)', () => {
-    expect(router.route(ev({ toolName: 'MysteryTool', input: {} }))).toBe('kim-team-lead');
+  it('unknown → team-lead (fallback)', () => {
+    expect(router.route(ev({ toolName: 'MysteryTool', input: {} }))).toBe('team-lead');
   });
 
-  it('session.start → kim-team-lead', () => {
-    expect(router.route({ type: 'session.start', ts: 0, sessionId: 's', cwd: '/' })).toBe('kim-team-lead');
+  it('session.start → team-lead', () => {
+    expect(router.route({ type: 'session.start', ts: 0, sessionId: 's', cwd: '/' })).toBe('team-lead');
   });
 });

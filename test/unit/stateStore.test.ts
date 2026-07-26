@@ -15,9 +15,9 @@ describe('stateStore', () => {
 
   it('session.stop resets to idle (character stays at desk, not off)', () => {
     const s = createStateStore(ids);
-    s.applyEvent('kim-team-lead', { type: 'agent.start', ts: 1, sessionId: 's', agentType: 'Plan', agentId: 'a1' });
-    s.applyEvent('kim-team-lead', { type: 'session.stop', ts: 2, sessionId: 's' });
-    const st = s.get('kim-team-lead');
+    s.applyEvent('team-lead', { type: 'agent.start', ts: 1, sessionId: 's', agentType: 'Plan', agentId: 'a1' });
+    s.applyEvent('team-lead', { type: 'session.stop', ts: 2, sessionId: 's' });
+    const st = s.get('team-lead');
     expect(st.status).toBe('idle');
     expect(st.queue).toEqual([]);
     expect(st.currentActivity).toBeUndefined();
@@ -61,14 +61,14 @@ describe('stateStore', () => {
 
   it('tool.post failure increments errorsCount', () => {
     const s = createStateStore(ids);
-    s.applyEvent('kim-team-lead', { type: 'tool.post', ts: 1, sessionId: 's', agentId: 'a', toolName: 'Write', success: false });
-    expect(s.get('kim-team-lead').stats.errorsCount).toBe(1);
-    expect(s.get('kim-team-lead').status).toBe('error');
+    s.applyEvent('team-lead', { type: 'tool.post', ts: 1, sessionId: 's', agentId: 'a', toolName: 'Write', success: false });
+    expect(s.get('team-lead').stats.errorsCount).toBe(1);
+    expect(s.get('team-lead').status).toBe('error');
   });
 
   it('setLine updates lastLine', () => {
     const s = createStateStore(ids);
-    const st = s.setLine('kim-team-lead', '안녕', 3000);
+    const st = s.setLine('team-lead', '안녕', 3000);
     expect(st.lastLine?.text).toBe('안녕');
     expect(st.lastLine?.ttlMs).toBe(3000);
   });
@@ -76,8 +76,8 @@ describe('stateStore', () => {
   it('applyEvent stamps lastUpdatedAt on the affected character', () => {
     const s = createStateStore(ids);
     const before = Date.now();
-    s.applyEvent('kim-team-lead', { type: 'tool.pre', ts: 1, sessionId: 's', agentId: 'a', toolName: 'Write', input: {} });
-    const st = s.get('kim-team-lead');
+    s.applyEvent('team-lead', { type: 'tool.pre', ts: 1, sessionId: 's', agentId: 'a', toolName: 'Write', input: {} });
+    const st = s.get('team-lead');
     expect(st.lastUpdatedAt).toBeGreaterThanOrEqual(before);
     expect(st.lastUpdatedAt).toBeLessThanOrEqual(Date.now());
   });

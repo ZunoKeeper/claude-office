@@ -12,19 +12,19 @@ export const AGENT_TYPE_MAP: Record<string, CharacterId> = {
   Explore: 'planner-researcher',         // 코드 탐색
   'general-purpose': 'code-reviewer',    // SDD 리뷰 워크플로 등 범용 멀티스텝
   'claude-code-guide': 'docs-manager',   // 문서/가이드 Q&A
-  'statusline-setup': 'kim-team-lead',   // 설정 헬퍼 — 메인 폴백에 명시
+  'statusline-setup': 'team-lead',   // 설정 헬퍼 — 메인 폴백에 명시
   // 플러그인/하네스 제공 — 이 머신 transcript에서 실제 관측되는 타입
-  claude: 'kim-team-lead',               // 범용 워커 (FleetView 기본)
+  claude: 'team-lead',               // 범용 워커 (FleetView 기본)
   'tech-lead': 'planner-researcher',     // 설계 판단
   'qa-verifier': 'tester',               // 검증/QA
   stabilizer: 'debugger',                // 안정화/오류 대응
-  'feature-dev': 'kim-team-lead',        // 기능 구현 (메인 구현 라인)
+  'feature-dev': 'team-lead',        // 기능 구현 (메인 구현 라인)
   'ux-designer': 'docs-manager',         // 산출물/디자인 문서
 };
 
 export const BUILTIN_AGENT_TYPES: ReadonlySet<string> = new Set(['Plan', 'Explore', 'general-purpose']);
 
-const FALLBACK: CharacterId = 'kim-team-lead';
+const FALLBACK: CharacterId = 'team-lead';
 
 function matchRule(rule: ActivityRule, toolName: string, input: unknown): boolean {
   const m = rule.match;

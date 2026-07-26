@@ -10,13 +10,15 @@ describe('dialoguePool', () => {
     expect(pools.size).toBe(6);
   });
 
-  it('picks a session.start line for kim-team-lead', async () => {
+  it('picks a session.start line for team-lead', async () => {
     const pools = await loadDialogues(DIR);
-    const line = pickLine(pools.get('kim-team-lead')!, {
+    const line = pickLine(pools.get('team-lead')!, {
       event: { type: 'session.start', ts: 0, sessionId: 's', cwd: '/' },
       queueDepth: 0, recentError: false, slots: {},
     });
-    expect(line).toMatch(/오늘도|자,/);
+    // 풀이 커서 특정 문구를 단정하지 않는다 — 매칭 엔트리에서 한 줄이 나오면 OK
+    expect(line).toBeTypeOf('string');
+    expect(line!.length).toBeGreaterThan(0);
   });
 
   it('respects queueDepthGte condition', async () => {
@@ -64,7 +66,7 @@ describe('dialoguePool', () => {
 
   it('returns null when no candidate matches', async () => {
     const pools = await loadDialogues(DIR);
-    const line = pickLine(pools.get('kim-team-lead')!, {
+    const line = pickLine(pools.get('team-lead')!, {
       event: { type: 'task.created', ts: 0, sessionId: 's', taskId: 't', subject: '' },
       queueDepth: 0, recentError: false, slots: {},
     });

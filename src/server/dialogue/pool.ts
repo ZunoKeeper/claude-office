@@ -1,11 +1,11 @@
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { ALL_CHARACTER_IDS, type CharacterId } from '../../shared/character.js';
-import type { DialogueEntry } from '../../shared/dialogue.js';
+import type { AmbientEvent, DialogueEntry } from '../../shared/dialogue.js';
 import type { DomainEvent } from '../../shared/events.js';
 
 export interface DialogueContext {
-  event: DomainEvent;
+  event: DomainEvent | AmbientEvent;
   queueDepth: number;
   recentError: boolean;
   slots: Record<string, string | number>;
@@ -28,9 +28,11 @@ export async function loadDialogues(dir: string): Promise<Map<CharacterId, Dialo
 function matches(entry: DialogueEntry, ctx: DialogueContext): boolean {
   const t = entry.trigger;
   if (t.eventType !== ctx.event.type) return false;
+  if (t.status && (ctx.event.type !== 'ambient' || ctx.event.status !== t.status)) return false;
   if (t.toolName) {
     const tn = (ctx.event as Extract<DomainEvent, { toolName: string }>).toolName;
-    if (tn !== t.toolName) return false;
+    const allowed = Array.isArray(t.toolName) ? t.toolName : [t.toolName];
+    if (!allowed.includes(tn)) return false;
   }
   if (t.conditions?.queueDepthGte !== undefined && ctx.queueDepth < t.conditions.queueDepthGte) return false;
   if (t.conditions?.errorRecent && !ctx.recentError) return false;

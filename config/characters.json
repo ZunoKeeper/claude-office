@@ -1,6 +1,6 @@
 [
   {
-    "id": "kim-team-lead", "name": "나팀장", "role": "Main Session(PM)",
+    "id": "team-lead", "name": "나팀장", "role": "Main Session(PM)",
     "description": "Main 세션 담당. 사용자 요구사항 접수와 조율, 매칭되지 않은 툴 호출의 폴백.",
     "officeSeat": { "x": 425, "y": 210 }, "seatDirection": "N", "spriteSheet": "characters/kim.json"
   },

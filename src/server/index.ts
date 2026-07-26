@@ -9,6 +9,7 @@ import { homedir } from 'node:os';
 import chokidar from 'chokidar';
 import { loadConfig } from './config/loadConfig.js';
 import { loadDialogues } from './dialogue/pool.js';
+import { startAmbientDialogue } from './dialogue/ambient.js';
 import { createRouter } from './characterRouter.js';
 import { createStateStore } from './stateStore.js';
 import { registerHookReceiver } from './hookReceiver.js';
@@ -116,6 +117,11 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
   );
   registerHookReceiver(app, { router, store, dialogues, ws });
 
+  // 활동 중(working/thinking/blocked/error)인 캐릭터는 상태에 맞는 ambient
+  // 대사를 몇 초 간격으로 계속 말한다 — 이벤트 대사와 함께 씬을 다이나믹하게.
+  const stopAmbient = startAmbientDialogue(store, dialogues);
+  app.addHook('onClose', async () => { stopAmbient(); });
+
   // Hot-reload config JSONs so seat/rule edits take effect without a full
   // server restart. On any change we re-read, swap the router internals, and
   // notify clients so they re-fetch /config/characters.
@@ -178,7 +184,7 @@ export async function startServer(opts: ServerOpts = {}): Promise<FastifyInstanc
         }
       } else {
         // Main session JSONL (e.g., ~/.claude/projects/<cwd>/<sessionId>.jsonl)
-        store.setModel('kim-team-lead', model);
+        store.setModel('team-lead', model);
       }
     }
 

@@ -11,7 +11,7 @@ describe('shared types', () => {
 
   it('CharacterState has queue array', () => {
     const s: CharacterState = {
-      id: 'kim-team-lead' as CharacterId,
+      id: 'team-lead' as CharacterId,
       status: 'idle' as CharacterStatus,
       queue: [],
       stats: { tasksCompleted: 0, toolCallsTotal: 0, errorsCount: 0 },

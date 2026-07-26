@@ -1,6 +1,123 @@
 [
-  { "characterId": "planner-researcher", "trigger": { "eventType": "agent.start" }, "templates": ["계획부터 세우죠", "구조 먼저 봅시다"] },
-  { "characterId": "planner-researcher", "trigger": { "eventType": "agent.stop" }, "templates": ["계획 완료"] },
-  { "characterId": "planner-researcher", "trigger": { "eventType": "tool.pre", "toolName": "Grep" }, "templates": ["훑어볼게요"] },
-  { "characterId": "planner-researcher", "trigger": { "eventType": "tool.pre", "toolName": "Glob" }, "templates": ["파일 목록 뽑는 중"] }
+  { "characterId": "planner-researcher", "trigger": { "eventType": "session.start" },
+    "templates": [
+      "오늘의 조사 목록부터 정리하죠.",
+      "새 세션… 자료조사 준비 완료.",
+      "일단 전체 구조부터 파악해야죠."
+    ] },
+  { "characterId": "planner-researcher", "trigger": { "eventType": "session.stop" },
+    "templates": [
+      "오늘 조사한 건 다 메모해뒀습니다.",
+      "리서치 노트 닫습니다. 수고하셨어요."
+    ] },
+  { "characterId": "planner-researcher", "trigger": { "eventType": "agent.start" },
+    "templates": [
+      "계획부터 세우죠",
+      "구조 먼저 봅시다",
+      "요구사항 분해 들어갑니다.",
+      "설계안 두세 개 뽑아볼게요.",
+      "리서치 모드 ON.",
+      "이건 조사가 좀 필요하겠는데요."
+    ] },
+  { "characterId": "planner-researcher", "trigger": { "eventType": "agent.stop" },
+    "templates": [
+      "계획 완료",
+      "조사 결과 정리해서 넘겼습니다.",
+      "설계 초안 나왔습니다. 검토 부탁해요."
+    ] },
+  { "characterId": "planner-researcher", "trigger": { "eventType": "tool.pre", "toolName": "Grep" },
+    "templates": [
+      "훑어볼게요",
+      "패턴 {pattern} 검색 중…",
+      "코드베이스 전수조사 들어갑니다.",
+      "어디에 숨었나 보자…",
+      "grep은 배신하지 않죠."
+    ] },
+  { "characterId": "planner-researcher", "trigger": { "eventType": "tool.pre", "toolName": "Glob" },
+    "templates": [
+      "파일 목록 뽑는 중",
+      "디렉터리 지도부터 그립니다.",
+      "파일 구조 스캔…",
+      "어떤 파일들이 있나 볼까요."
+    ] },
+  { "characterId": "planner-researcher", "trigger": { "eventType": "tool.pre", "toolName": "Read" },
+    "templates": [
+      "{fileName} 정독하겠습니다.",
+      "문서부터 읽어야 길이 보이죠.",
+      "이 파일에 답이 있을 것 같은데…",
+      "밑줄 그으면서 읽는 중."
+    ] },
+  { "characterId": "planner-researcher", "trigger": { "eventType": "tool.pre", "toolName": "WebSearch" },
+    "templates": [
+      "웹에서 레퍼런스 찾는 중…",
+      "선행 사례부터 조사하죠.",
+      "검색어를 잘 골라야…"
+    ] },
+  { "characterId": "planner-researcher", "trigger": { "eventType": "tool.pre" },
+    "templates": [
+      "자료 수집 중입니다.",
+      "이것도 조사 목록에 추가.",
+      "근거부터 모으죠."
+    ] },
+  { "characterId": "planner-researcher", "trigger": { "eventType": "tool.post", "conditions": { "errorRecent": true } },
+    "templates": [
+      "가설이 틀렸네요. 다음 가설로.",
+      "이 경로는 막다른 길이었군요.",
+      "조사 방향 수정합니다."
+    ] },
+  { "characterId": "planner-researcher", "trigger": { "eventType": "tool.post" },
+    "templates": [
+      "단서 확보.",
+      "이 정도면 그림이 그려지네요.",
+      "메모, 메모…",
+      "가설 하나 검증 완료."
+    ] },
+  { "characterId": "planner-researcher", "trigger": { "eventType": "agent.start", "conditions": { "queueDepthGte": 2 } },
+    "templates": [
+      "조사 의뢰가 {queueDepth}건… 순서대로 갑니다.",
+      "리서치 백로그가 쌓이네요."
+    ] },
+  { "characterId": "planner-researcher", "trigger": { "eventType": "ambient", "status": "working" },
+    "templates": [
+      "자료 정리 중… 흥미로운 게 나왔어요.",
+      "이 코드, 생각보다 역사가 깊네요.",
+      "구조도가 머릿속에 그려집니다.",
+      "{label} 조사 중…",
+      "연관 파일이 꼬리에 꼬리를 무네요.",
+      "핵심 모듈 찾았습니다. 표시해두죠.",
+      "의존성 그래프가 재밌게 생겼네요.",
+      "{elapsedS}초째 파고드는 중.",
+      "이 패턴, 다른 곳에서도 쓰이는데요.",
+      "요약하면… 아직 요약하기 이르네요.",
+      "레퍼런스 세 개 확보. 좋아요.",
+      "계획 v2 작성 중…"
+    ] },
+  { "characterId": "planner-researcher", "trigger": { "eventType": "ambient", "status": "thinking" },
+    "templates": [
+      "가설: 아마 여기가 원인… 검증 필요.",
+      "두 가지 접근이 있는데, 뭐가 나을까.",
+      "장단점 표로 그려보는 중.",
+      "이 설계면 확장에도 버틸까?",
+      "잠깐, 전제부터 다시 봅시다.",
+      "YAGNI… 이 기능은 뺄까.",
+      "엣지 케이스가 몇 개나 되지?",
+      "결정 전에 한 번만 더 조사."
+    ] },
+  { "characterId": "planner-researcher", "trigger": { "eventType": "ambient", "status": "blocked" },
+    "templates": [
+      "추가 정보가 필요합니다. 대기 중.",
+      "이 부분은 결정권자 확인이 필요해요.",
+      "자료가 부족하네요… 기다립니다.",
+      "막힌 김에 지금까지 조사 정리 중.",
+      "입력 대기… 가설만 쌓여갑니다."
+    ] },
+  { "characterId": "planner-researcher", "trigger": { "eventType": "ambient", "status": "error" },
+    "templates": [
+      "예상과 다른 결과… 흥미롭네요.",
+      "실패도 데이터죠. 기록합니다.",
+      "가설 폐기. 새 가설 수립 중.",
+      "이 에러, 문서에 없던 케이스인데요.",
+      "원인 후보 세 개로 좁혔습니다.",
+      "재조사 들어갑니다."
+    ] }
 ]

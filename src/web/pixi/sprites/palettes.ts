@@ -26,7 +26,7 @@ const BASE: Palette = {
 };
 
 export const PALETTES: Record<CharacterId, Palette> = {
-  'kim-team-lead': {
+  'team-lead': {
     ...BASE,
     H: '#6d28d9', h: '#4c1d95',
     S: '#f8fafc', s: '#cbd5e1',

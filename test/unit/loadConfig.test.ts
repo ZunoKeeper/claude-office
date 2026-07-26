@@ -8,7 +8,7 @@ describe('loadConfig', () => {
   it('loads 6 characters', async () => {
     const { characters } = await loadConfig(CONFIG_DIR);
     expect(characters).toHaveLength(6);
-    expect(characters.map((c) => c.id)).toContain('kim-team-lead');
+    expect(characters.map((c) => c.id)).toContain('team-lead');
   });
 
   it('loads activity rules sorted by priority desc', async () => {

@@ -1,6 +1,108 @@
 [
-  { "characterId": "code-reviewer", "trigger": { "eventType": "agent.start" }, "templates": ["리뷰 시작합니다", "코드 좀 볼게요"] },
-  { "characterId": "code-reviewer", "trigger": { "eventType": "agent.stop" }, "templates": ["리뷰 완료", "LGTM"] },
-  { "characterId": "code-reviewer", "trigger": { "eventType": "agent.start", "conditions": { "queueDepthGte": 2 } }, "templates": ["지금 {queueDepth}개 리뷰 대기중..."] },
-  { "characterId": "code-reviewer", "trigger": { "eventType": "tool.pre" }, "templates": ["체크"] }
+  { "characterId": "code-reviewer", "trigger": { "eventType": "session.start" },
+    "templates": [
+      "오늘도 머지할 자격이 있는 코드만 통과합니다.",
+      "리뷰어 출근. 각오들 하세요.",
+      "체크리스트 새로 뽑았습니다."
+    ] },
+  { "characterId": "code-reviewer", "trigger": { "eventType": "session.stop" },
+    "templates": [
+      "오늘 리뷰는 여기까지. 다들 수고했어요.",
+      "머지 큐 비웠습니다. 홀가분하네요."
+    ] },
+  { "characterId": "code-reviewer", "trigger": { "eventType": "agent.start" },
+    "templates": [
+      "리뷰 시작합니다",
+      "코드 좀 볼게요",
+      "diff부터 펼쳐봅시다.",
+      "이번 PR은 얼마나 크려나…",
+      "커밋 히스토리부터 읽는 게 예의죠.",
+      "돋보기 모드 ON."
+    ] },
+  { "characterId": "code-reviewer", "trigger": { "eventType": "agent.stop" },
+    "templates": [
+      "리뷰 완료",
+      "LGTM",
+      "코멘트 몇 개 남겼습니다. 확인해주세요.",
+      "승인! 이번 건 깔끔했어요."
+    ] },
+  { "characterId": "code-reviewer", "trigger": { "eventType": "agent.start", "conditions": { "queueDepthGte": 2 } },
+    "templates": [
+      "인기가 많네요, 제가.",
+      "리뷰 큐 {queueDepth}건. 순서대로 공정하게.",
+      "지금 {queueDepth}개 리뷰 대기중..."
+    ] },
+  { "characterId": "code-reviewer", "trigger": { "eventType": "tool.pre", "toolName": "Read" },
+    "templates": [
+      "{fileName} 검토 들어갑니다.",
+      "이 파일, 맥락까지 봐야죠.",
+      "호출부도 같이 확인합니다."
+    ] },
+  { "characterId": "code-reviewer", "trigger": { "eventType": "tool.pre", "toolName": "Grep" },
+    "templates": [
+      "이 패턴 다른 데서도 쓰나 확인.",
+      "중복 코드 탐지 중…",
+      "영향 범위 조사합니다."
+    ] },
+  { "characterId": "code-reviewer", "trigger": { "eventType": "tool.pre" },
+    "templates": [
+      "체크",
+      "꼼꼼히 봅니다.",
+      "기준은 하나, 코드 품질."
+    ] },
+  { "characterId": "code-reviewer", "trigger": { "eventType": "tool.post", "conditions": { "errorRecent": true } },
+    "templates": [
+      "이래서 리뷰가 필요한 겁니다.",
+      "제 예감이 맞았네요. 여기 문제 있어요.",
+      "블로킹 코멘트 하나 추가요."
+    ] },
+  { "characterId": "code-reviewer", "trigger": { "eventType": "tool.post" },
+    "templates": [
+      "이 부분은 통과.",
+      "깔끔하네요. 다음 파일.",
+      "네이밍 좋고, 구조 좋고.",
+      "지적할 게 없어서 아쉽네요."
+    ] },
+  { "characterId": "code-reviewer", "trigger": { "eventType": "ambient", "status": "working" },
+    "templates": [
+      "diff {elapsedS}초째 정독 중…",
+      "이 함수, 세 가지 일을 하네요. 분리합시다.",
+      "네이밍이 애매한데… 코멘트 남길까.",
+      "여기 엣지 케이스 처리가 없는데요?",
+      "일관성! 옆 파일과 스타일이 달라요.",
+      "이 추상화는 과한데… 아닌가?",
+      "{label} 리뷰 중…",
+      "테스트 커버리지도 같이 봅니다.",
+      "좋은 코드는 설명이 필요 없죠. 이건… 필요하네요.",
+      "매직 넘버 발견. 상수로 빼주세요.",
+      "이 정도 diff면 양호한 편이죠.",
+      "훌륭한 부분엔 칭찬 코멘트도 답니다."
+    ] },
+  { "characterId": "code-reviewer", "trigger": { "eventType": "ambient", "status": "thinking" },
+    "templates": [
+      "이걸 지적할까 말까… 지적해야죠.",
+      "제안으로 남길까, 블로킹으로 걸까.",
+      "이 설계, 6개월 뒤에도 유지보수 가능한가?",
+      "내가 너무 깐깐한가… 아니야, 기준이지.",
+      "대안을 제시 못 하면 지적도 하지 말자.",
+      "이 트레이드오프는 작성자 의도가 있겠지.",
+      "관례냐 정답이냐, 그것이 문제."
+    ] },
+  { "characterId": "code-reviewer", "trigger": { "eventType": "ambient", "status": "blocked" },
+    "templates": [
+      "작성자 답변 대기 중…",
+      "이 컨텍스트는 물어봐야 알겠네요.",
+      "CI 결과 기다리는 중. 그린이길.",
+      "리뷰는 대화죠. 답장을 기다립니다.",
+      "대기 중… 다른 PR이나 미리 볼까."
+    ] },
+  { "characterId": "code-reviewer", "trigger": { "eventType": "ambient", "status": "error" },
+    "templates": [
+      "빌드가 깨졌는데 리뷰가 무슨 의미겠어요.",
+      "이 에러, 리뷰에서 잡았어야 했는데.",
+      "제 체크리스트에 한 줄 추가됐습니다.",
+      "누적 {errors}건… 근본 원인을 봅시다.",
+      "린트부터 통과시키고 다시 오세요.",
+      "에러 나는 코드엔 LGTM 없습니다."
+    ] }
 ]

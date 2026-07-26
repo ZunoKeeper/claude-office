@@ -1,5 +1,110 @@
 [
-  { "characterId": "debugger", "trigger": { "eventType": "tool.pre" }, "templates": ["로그 살펴볼게요", "패턴 찾는 중..."] },
-  { "characterId": "debugger", "trigger": { "eventType": "tool.post", "conditions": { "errorRecent": true } }, "templates": ["에러 패턴 잡았어요"] },
-  { "characterId": "debugger", "trigger": { "eventType": "tool.post" }, "templates": ["원인 짚었네요", "찾았다"] }
+  { "characterId": "debugger", "trigger": { "eventType": "session.start" },
+    "templates": [
+      "로그 수집기 가동합니다.",
+      "오늘은 어떤 에러가 기다리고 있을까요.",
+      "돋보기 챙겼습니다. 시작하죠."
+    ] },
+  { "characterId": "debugger", "trigger": { "eventType": "session.stop" },
+    "templates": [
+      "오늘 로그는 전부 아카이브했습니다.",
+      "미해결 케이스는 내일의 나에게."
+    ] },
+  { "characterId": "debugger", "trigger": { "eventType": "tool.pre", "toolName": ["Bash", "PowerShell"] },
+    "templates": [
+      "로그 살펴볼게요",
+      "{command}… 뭐가 나오나 보자.",
+      "tail -f 걸어두고 관찰합니다.",
+      "grep으로 범인 색출 중.",
+      "타임스탬프 순으로 정렬해서…"
+    ] },
+  { "characterId": "debugger", "trigger": { "eventType": "tool.pre", "toolName": "Read" },
+    "templates": [
+      "{fileName} 열어봅니다.",
+      "로그 파일 정독 시간.",
+      "이 파일에 단서가 있을 텐데…"
+    ] },
+  { "characterId": "debugger", "trigger": { "eventType": "tool.pre", "toolName": "Grep" },
+    "templates": [
+      "패턴 찾는 중...",
+      "{pattern} 검색… 걸려라.",
+      "에러 코드로 역추적합니다."
+    ] },
+  { "characterId": "debugger", "trigger": { "eventType": "tool.pre" },
+    "templates": [
+      "단서 수집 중입니다.",
+      "증거를 모아봅시다.",
+      "이상 징후 스캔 중."
+    ] },
+  { "characterId": "debugger", "trigger": { "eventType": "tool.post", "conditions": { "errorRecent": true } },
+    "templates": [
+      "에러 패턴 잡았어요",
+      "스택트레이스가 가리키는 곳으로.",
+      "이 타임스탬프… 수상해요.",
+      "범인은 이 안에 있습니다.",
+      "재현 조건 확보. 반은 잡은 거죠."
+    ] },
+  { "characterId": "debugger", "trigger": { "eventType": "tool.post" },
+    "templates": [
+      "원인 짚었네요",
+      "찾았다",
+      "로그는 거짓말을 안 하죠.",
+      "타임라인 정리 완료.",
+      "이상 없음. 다음 구간 봅니다."
+    ] },
+  { "characterId": "debugger", "trigger": { "eventType": "agent.start" },
+    "templates": [
+      "분석 의뢰 접수했습니다.",
+      "사건 파일 열게요.",
+      "어디서부터 꼬였나 볼까요."
+    ] },
+  { "characterId": "debugger", "trigger": { "eventType": "agent.stop" },
+    "templates": [
+      "분석 리포트 제출 완료.",
+      "사건 종결입니다."
+    ] },
+  { "characterId": "debugger", "trigger": { "eventType": "ambient", "status": "working" },
+    "templates": [
+      "로그 한 줄 한 줄이 다 증언이죠.",
+      "{elapsedS}초째 추적 중…",
+      "타임라인 재구성하는 중입니다.",
+      "이 WARN, 그냥 지나칠 수 없는데.",
+      "에러는 항상 흔적을 남기죠.",
+      "{label} 들여다보는 중…",
+      "상관관계와 인과관계는 다르죠. 신중하게.",
+      "이 시각에 뭐가 있었냐면요…",
+      "로그 레벨을 debug로 올려볼까.",
+      "바이너리 서치로 범위 좁히는 중.",
+      "재현 3번 중 2번… 조건이 하나 더 있네.",
+      "수집한 단서 {calls}개. 그림이 나온다."
+    ] },
+  { "characterId": "debugger", "trigger": { "eventType": "ambient", "status": "thinking" },
+    "templates": [
+      "만약 여기서 race condition이라면…",
+      "가설 A, B, C… 소거법으로 갑니다.",
+      "왜 하필 이 타이밍에만 터질까.",
+      "캐시 문제일 확률 60%… 아니, 70%.",
+      "이 에러 메시지, 진짜 원인이 아닐 수도.",
+      "휴리스틱 말고 증거로 말합시다.",
+      "잠깐, 전제를 의심해보자."
+    ] },
+  { "characterId": "debugger", "trigger": { "eventType": "ambient", "status": "blocked" },
+    "templates": [
+      "로그 접근 권한 대기 중…",
+      "재현 환경이 필요합니다. 대기.",
+      "추가 로그가 쌓일 때까지 잠복근무.",
+      "단서가 더 필요해요… 기다립니다.",
+      "막힌 김에 지금까지의 추리 정리."
+    ] },
+  { "characterId": "debugger", "trigger": { "eventType": "ambient", "status": "error" },
+    "templates": [
+      "좋아요, 현행범으로 잡았습니다.",
+      "에러 발생 시각 기록… 체크.",
+      "코어 덤프라도 남겨줬으면.",
+      "이 스택 깊이 좀 보세요. 장관이네.",
+      "누적 {errors}건… 전부 같은 뿌리일 수도.",
+      "당황하지 말고, 로그부터.",
+      "에러도 데이터입니다. 수집, 수집.",
+      "원인 후보를 두 개로 좁혔어요."
+    ] }
 ]

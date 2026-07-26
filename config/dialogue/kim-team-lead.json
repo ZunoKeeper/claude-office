@@ -1,6 +1,0 @@
-[
-  { "characterId": "kim-team-lead", "trigger": { "eventType": "session.start" }, "templates": ["오늘도 시작해볼까요...", "자, 뭘 해달라시는지…"] },
-  { "characterId": "kim-team-lead", "trigger": { "eventType": "session.stop" }, "templates": ["수고들 하셨습니다. 마감!"] },
-  { "characterId": "kim-team-lead", "trigger": { "eventType": "user.prompt" }, "templates": ["음, {promptFirst20}... 이거 어떻게 나눌까"] },
-  { "characterId": "kim-team-lead", "trigger": { "eventType": "tool.post", "conditions": { "errorRecent": true } }, "templates": ["어... 이거 왜 안 되지"] }
-]

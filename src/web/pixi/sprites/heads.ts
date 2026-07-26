@@ -207,7 +207,7 @@ function makeHeadSet(style: 'normal' | 'hood' | 'long' | 'parted'): HeadSet {
 }
 
 export const HEADS: Record<CharacterId, HeadSet> = {
-  'kim-team-lead': makeHeadSet(KIM_STYLE),
+  'team-lead': makeHeadSet(KIM_STYLE),
   'planner-researcher': makeHeadSet(PLANNER_STYLE),
   'tester': makeHeadSet(TESTER_STYLE),
   'debugger': makeHeadSet(DEBUGGER_STYLE),

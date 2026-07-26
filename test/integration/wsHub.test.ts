@@ -28,7 +28,7 @@ describe('WS /live', () => {
     expect(messages[0]).toMatchObject({ kind: 'snapshot' });
 
     // Trigger update
-    store.applyEvent('kim-team-lead', { type: 'tool.pre', ts: 1, sessionId: 's', agentId: 'a', toolName: 'Write', input: {} });
+    store.applyEvent('team-lead', { type: 'tool.pre', ts: 1, sessionId: 's', agentId: 'a', toolName: 'Write', input: {} });
     await new Promise((r) => setTimeout(r, 50));
     expect(messages.some((m) => (m as { kind: string }).kind === 'characterUpdated')).toBe(true);
 
@@ -53,7 +53,7 @@ describe('WS /live', () => {
 
     // After disconnect, store updates should not throw or hang
     expect(() => {
-      store.applyEvent('kim-team-lead', { type: 'tool.pre', ts: 2, sessionId: 's2', agentId: 'a2', toolName: 'Read', input: {} });
+      store.applyEvent('team-lead', { type: 'tool.pre', ts: 2, sessionId: 's2', agentId: 'a2', toolName: 'Read', input: {} });
     }).not.toThrow();
   });
 
@@ -93,7 +93,7 @@ describe('WS /live', () => {
     await new Promise<void>((r) => ws.on('open', () => r()));
     await new Promise((r) => setTimeout(r, 50));
 
-    store.applyEvent('kim-team-lead', { type: 'tool.pre', ts: 3, sessionId: 's', agentId: 'a', toolName: 'Bash', input: {} });
+    store.applyEvent('team-lead', { type: 'tool.pre', ts: 3, sessionId: 's', agentId: 'a', toolName: 'Bash', input: {} });
     await new Promise((r) => setTimeout(r, 50));
 
     const update = messages.find((m) => (m as { kind: string }).kind === 'characterUpdated') as {
@@ -101,7 +101,7 @@ describe('WS /live', () => {
       state: { id: string; status: string };
     } | undefined;
     expect(update).toBeDefined();
-    expect(update?.state.id).toBe('kim-team-lead');
+    expect(update?.state.id).toBe('team-lead');
     expect(update?.state.status).toBe('working');
 
     ws.close();

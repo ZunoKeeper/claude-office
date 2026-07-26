@@ -1,7 +1,7 @@
 [
-  { "characterId": "tester",             "priority": 120, "match": { "toolName": ["Bash"], "bashCommandPattern": "\\b(pytest|jest|vitest|go test|cargo test|mocha|npm test|npm run test|yarn test|pnpm test)\\b" } },
-  { "characterId": "debugger",           "priority": 115, "match": { "toolName": ["Bash"], "bashCommandPattern": "\\b(grep|rg|tail|less|head|journalctl|dmesg)\\b" } },
-  { "characterId": "debugger",           "priority": 110, "match": { "toolName": ["Read"], "filePathPattern": "\\.log$|/log/|/logs/" } },
+  { "characterId": "tester",             "priority": 120, "match": { "toolName": ["Bash", "PowerShell"], "bashCommandPattern": "\\b(pytest|jest|vitest|go test|cargo test|mocha|npm test|npm run test|yarn test|pnpm test|Invoke-Pester)\\b" } },
+  { "characterId": "debugger",           "priority": 115, "match": { "toolName": ["Bash", "PowerShell"], "bashCommandPattern": "\\b(grep|rg|tail|less|head|journalctl|dmesg|Select-String|Get-Content|Get-EventLog|Get-WinEvent)\\b" } },
+  { "characterId": "debugger",           "priority": 110, "match": { "toolName": ["Read"], "filePathPattern": "\\.log$|[\\\\/]logs?[\\\\/]" } },
   { "characterId": "docs-manager",       "priority": 105, "match": { "toolName": ["Write", "Edit"], "filePathPattern": "\\.(md|mdx|rst)$" } },
   { "characterId": "planner-researcher", "priority": 100, "match": { "toolName": ["Grep", "Glob"] } },
   { "characterId": "planner-researcher", "priority": 95,  "match": { "toolName": ["Read"], "filePathPattern": "\\.(md|txt|rst)$" } }
