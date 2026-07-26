@@ -28,7 +28,7 @@
 **Interfaces:**
 - Produces: `FRAME_W/FRAME_H=32`, `type Direction`, `frameRect(dir, frame, row): {x,y,w,h}`, `poseToFrame(pose): {dir, frame, yOff}`
 
-- [ ] 복사 명령:
+- [x] 복사 명령:
 
 ```bash
 cd c:/Apps/claude-office
@@ -44,7 +44,7 @@ for i in 1 2 3 4 5 6; do cp "src/characters/MetroCity/Outfits/Outfit$i.png" "src
 
 주의: `Hairs.png`는 저장소 루트 `src/characters/MetroCity/Hairs.png`가 아니라 `Hair/Hairs.png`에 있음 — 실제 위치는 `src/characters/MetroCity/Hair/Hairs.png`.
 
-- [ ] `frames.ts` 작성:
+- [x] `frames.ts` 작성:
 
 ```ts
 export const FRAME_W = 32;
@@ -66,7 +66,7 @@ export function frameRect(dir: Direction, frame: number, row: number): FrameRect
 }
 ```
 
-- [ ] 실패 테스트 작성 후 `npx vitest run test/unit/spriteFrames.test.ts` (frames.ts 작성 전 FAIL 확인 → 작성 후 PASS):
+- [x] 실패 테스트 작성 후 `npx vitest run test/unit/spriteFrames.test.ts` (frames.ts 작성 전 FAIL 확인 → 작성 후 PASS):
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -90,7 +90,7 @@ describe('frameRect', () => {
 });
 ```
 
-- [ ] 커밋: `feat(web): MetroCity 시트 자산 + 프레임 좌표 모듈`
+- [x] 커밋: `feat(web): MetroCity 시트 자산 + 프레임 좌표 모듈`
 
 ### Task 2: 공유 카탈로그 + 서버 저장/검증 재작성
 
@@ -103,7 +103,7 @@ describe('frameRect', () => {
 **Interfaces:**
 - Produces: `SpritePartRef {sheet,row}`, `CharacterAppearance {skin, hair, outfit}`, `AppearanceDoc`, `SKIN_COUNT`, `HAIR_SHEETS`, `OUTFIT_SHEETS`, `DEFAULT_APPEARANCES`, `isValidAppearance(a)`, 서버 `loadSprites(): Promise<AppearanceDoc>`, `saveSprites(doc)`, `sanitizeAppearanceDoc(input): AppearanceDoc | null`
 
-- [ ] `src/shared/sprites.ts` 전면 교체:
+- [x] `src/shared/sprites.ts` 전면 교체:
 
 ```ts
 import type { CharacterId } from './character.js';
@@ -153,7 +153,7 @@ export const DEFAULT_APPEARANCES: Record<CharacterId, CharacterAppearance> = {
 };
 ```
 
-- [ ] `src/server/setup/sprites.ts` 전면 교체:
+- [x] `src/server/setup/sprites.ts` 전면 교체:
 
 ```ts
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
@@ -194,9 +194,9 @@ export async function saveSprites(doc: AppearanceDoc): Promise<string> {
 }
 ```
 
-- [ ] `src/server/index.ts`: `sanitizeSpriteOverrides` import/호출을 `sanitizeAppearanceDoc`으로 교체 (엔드포인트·브로드캐스트 로직 불변).
+- [x] `src/server/index.ts`: `sanitizeSpriteOverrides` import/호출을 `sanitizeAppearanceDoc`으로 교체 (엔드포인트·브로드캐스트 로직 불변).
 
-- [ ] 테스트 `test/unit/spriteAppearance.test.ts`:
+- [x] 테스트 `test/unit/spriteAppearance.test.ts`:
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -231,7 +231,7 @@ describe('DEFAULT_APPEARANCES', () => {
 });
 ```
 
-- [ ] `npx vitest run test/unit/spriteAppearance.test.ts` PASS 확인, 커밋: `feat: 스프라이트 조합(AppearanceDoc) 공유 카탈로그 + 서버 검증`
+- [x] `npx vitest run test/unit/spriteAppearance.test.ts` PASS 확인, 커밋: `feat: 스프라이트 조합(AppearanceDoc) 공유 카탈로그 + 서버 검증`
 
 ### Task 3: 웹 합성 엔진 재작성 (sheets/compose/atlas/types) + 구 도트 파일 삭제
 
@@ -246,7 +246,7 @@ describe('DEFAULT_APPEARANCES', () => {
 - Consumes: Task 1 `frames.ts`, Task 2 shared 카탈로그
 - Produces: `loadSheets(): Promise<void>`, `getSheet(name): HTMLImageElement`, `composeFrame(a: CharacterAppearance, pose: PoseKey): HTMLCanvasElement`, `setAppearances(doc)`, `getAppearance(char): CharacterAppearance`, `buildAtlas()/invalidateAtlas()` (API 불변), `PoseKey = stand-D | walk1..6-D | sit | type1 | type2`, `SPRITE_W/H = 32`
 
-- [ ] `types.ts`:
+- [x] `types.ts`:
 
 ```ts
 export { FRAME_W as SPRITE_W, FRAME_H as SPRITE_H } from './frames.js';
@@ -275,7 +275,7 @@ export function poseToFrame(pose: PoseKey): { dir: Direction; frame: number; yOf
 }
 ```
 
-- [ ] `sheets.ts` (URL import는 vite가 처리; `.png` 모듈 선언이 없으면 `src/web/vite-env.d.ts`에 `/// <reference types="vite/client" />` 추가):
+- [x] `sheets.ts` (URL import는 vite가 처리; `.png` 모듈 선언이 없으면 `src/web/vite-env.d.ts`에 `/// <reference types="vite/client" />` 추가):
 
 ```ts
 import bodyUrl from '../../assets/metrocity/body.png';
@@ -318,7 +318,7 @@ export function getSheet(name: string): HTMLImageElement {
 }
 ```
 
-- [ ] `compose.ts` 재작성 (문자 매트릭스 제거):
+- [x] `compose.ts` 재작성 (문자 매트릭스 제거):
 
 ```ts
 import type { CharacterId } from '../../../shared/character.js';
@@ -359,9 +359,9 @@ export function composeSprite(char: CharacterId, pose: PoseKey): HTMLCanvasEleme
 }
 ```
 
-- [ ] `atlas.ts`: `composeSprite`가 canvas를 반환하므로 `Texture.from(canvas)`만 수행하도록 축약 (`invalidateAtlas`/`buildAtlas` API 유지, 캐시 키 `${char}|${pose}` 유지).
+- [x] `atlas.ts`: `composeSprite`가 canvas를 반환하므로 `Texture.from(canvas)`만 수행하도록 축약 (`invalidateAtlas`/`buildAtlas` API 유지, 캐시 키 `${char}|${pose}` 유지).
 
-- [ ] `PixelAvatar.tsx` 재작성 — canvas 렌더:
+- [x] `PixelAvatar.tsx` 재작성 — canvas 렌더:
 
 ```tsx
 import { useEffect, useRef } from 'react';
@@ -386,9 +386,9 @@ export function PixelAvatar({ id, size = 48, pose = 'stand-S' }: { id: Character
 }
 ```
 
-- [ ] `App.tsx`: `loadSheets()` 완료 전 오피스 레이아웃 미마운트(`sheetsReady` state, 실패 시 에러 문구), `/config/sprites` fetch 콜백을 `setAppearances(doc)`로 교체.
-- [ ] 삭제: `bodyPoses.ts, heads.ts, faces.ts, accessories.ts, palettes.ts, SpriteEditorScreen.tsx` 후 `grep -rn "bodyPoses\|HEADS\|FACES\|ACCESSORIES\|PALETTES\|SpriteEditor\|composeSpriteWith\|effectiveLayers\|setSpriteOverrides" src/` 로 잔존 참조 0 확인.
-- [ ] `npx tsc -p tsconfig.web.json --noEmit` + `npm run build:web` 통과, 커밋: `feat(web): MetroCity 시트 합성 엔진으로 교체`
+- [x] `App.tsx`: `loadSheets()` 완료 전 오피스 레이아웃 미마운트(`sheetsReady` state, 실패 시 에러 문구), `/config/sprites` fetch 콜백을 `setAppearances(doc)`로 교체.
+- [x] 삭제: `bodyPoses.ts, heads.ts, faces.ts, accessories.ts, palettes.ts, SpriteEditorScreen.tsx` 후 `grep -rn "bodyPoses\|HEADS\|FACES\|ACCESSORIES\|PALETTES\|SpriteEditor\|composeSpriteWith\|effectiveLayers\|setSpriteOverrides" src/` 로 잔존 참조 0 확인.
+- [x] `npx tsc -p tsconfig.web.json --noEmit` + `npm run build:web` 통과, 커밋: `feat(web): MetroCity 시트 합성 엔진으로 교체`
 
 ### Task 4: CharacterSprite 6프레임 걷기 + 스케일
 
@@ -398,10 +398,10 @@ export function PixelAvatar({ id, size = 48, pose = 'stand-S' }: { id: Character
 **Interfaces:**
 - Consumes: `PoseKey`(walk1..6), atlas API 불변
 
-- [ ] `PIXEL_SCALE`을 3으로 변경 (주석 갱신: 32×3=96, 이름표 오프셋 불변).
-- [ ] `frame: 0|1` → `frame: number`; `currentPose()`에서 walking은 `walk${frame+1}-${dir}`, typing은 `frame % 2 === 0 ? 'type1' : 'type2'`.
-- [ ] `tick()` 프레임 전진을 `this.frame = (this.frame + 1) % (this.animState === 'walking' ? 6 : 2)`로.
-- [ ] `moveTo()`의 `this.frame = 0` 유지. 빌드 확인 후 커밋: `feat(web): 6프레임 걷기 사이클 + 32px 스프라이트 스케일`
+- [x] `PIXEL_SCALE`을 3으로 변경 (주석 갱신: 32×3=96, 이름표 오프셋 불변).
+- [x] `frame: 0|1` → `frame: number`; `currentPose()`에서 walking은 `walk${frame+1}-${dir}`, typing은 `frame % 2 === 0 ? 'type1' : 'type2'`.
+- [x] `tick()` 프레임 전진을 `this.frame = (this.frame + 1) % (this.animState === 'walking' ? 6 : 2)`로.
+- [x] `moveTo()`의 `this.frame = 0` 유지. 빌드 확인 후 커밋: `feat(web): 6프레임 걷기 사이클 + 32px 스프라이트 스케일`
 
 ### Task 5: 설정창 외모(조합) 에디터
 
@@ -413,17 +413,17 @@ export function PixelAvatar({ id, size = 48, pose = 'stand-S' }: { id: Character
 - Consumes: `composeFrame`, `getSheet`, `frameRect`, 카탈로그, `PUT /config/sprites`
 - Produces: `<AppearanceEditor charId value onChange />` — 저장은 SettingsScreen이 문서 전체 PUT
 
-- [ ] `AppearanceEditor.tsx`: 피부 6 스와치 + 헤어(없음+13) + 의상(없음+15) 썸네일 그리드(각 시트 행의 stand-S 프레임을 32×32 canvas에 그림), 미리보기 4방향 + walk 애니메이션(160ms interval, walk1..6-S).
-- [ ] `SettingsScreen.tsx`: 마운트 시 `/config/sprites` fetch → `AppearanceDoc` state(기본값 병합), 행마다 "외모" 토글 버튼 → 해당 행 아래 AppearanceEditor 확장. SAVE ALL 시 이름 PATCH와 함께 문서 전체 `PUT /config/sprites`, 성공 시 `setAppearances(doc)` + `invalidateAtlas()` + `bumpSpritesVersion()`.
-- [ ] CSS: `.appearance-editor`, `.part-grid`, `.part-thumb(.active)`, `.appearance-preview` 추가 — 기존 settings 패널 톤 유지.
-- [ ] 빌드 통과, 커밋: `feat(web): 캐릭터 설정창 스프라이트 조합 에디터`
+- [x] `AppearanceEditor.tsx`: 피부 6 스와치 + 헤어(없음+13) + 의상(없음+15) 썸네일 그리드(각 시트 행의 stand-S 프레임을 32×32 canvas에 그림), 미리보기 4방향 + walk 애니메이션(160ms interval, walk1..6-S).
+- [x] `SettingsScreen.tsx`: 마운트 시 `/config/sprites` fetch → `AppearanceDoc` state(기본값 병합), 행마다 "외모" 토글 버튼 → 해당 행 아래 AppearanceEditor 확장. SAVE ALL 시 이름 PATCH와 함께 문서 전체 `PUT /config/sprites`, 성공 시 `setAppearances(doc)` + `invalidateAtlas()` + `bumpSpritesVersion()`.
+- [x] CSS: `.appearance-editor`, `.part-grid`, `.part-thumb(.active)`, `.appearance-preview` 추가 — 기존 settings 패널 톤 유지.
+- [x] 빌드 통과, 커밋: `feat(web): 캐릭터 설정창 스프라이트 조합 에디터`
 
 ### Task 6: 통합 검증
 
-- [ ] `npm run test` 전체 PASS, `npm run build` 성공.
-- [ ] dev 서버 기동(`npm run dev` 백그라운드) 후 Chrome DevTools MCP로 접속:
+- [x] `npm run test` 전체 PASS, `npm run build` 성공.
+- [x] dev 서버 기동(`npm run dev` 백그라운드) 후 Chrome DevTools MCP로 접속:
   - 씬에서 6캐릭터가 MetroCity 스프라이트로 렌더되는지 스크린샷 확인
   - 이동 중 E/W 방향이 진행 방향과 일치하는지 확인 (불일치 시 frames.ts의 E/W 블록 스왑)
   - 설정창에서 파트 변경 → 저장 → 씬·카드 즉시 반영 확인
-- [ ] README의 스프라이트 편집 관련 문구가 있으면 갱신.
-- [ ] 최종 커밋 + 계획 문서 체크박스 갱신.
+- [x] README의 스프라이트 편집 관련 문구가 있으면 갱신.
+- [x] 최종 커밋 + 계획 문서 체크박스 갱신.
