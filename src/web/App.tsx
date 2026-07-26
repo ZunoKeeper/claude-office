@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import { GridDashboard } from './views/GridDashboard.js';
 import { IsometricOffice } from './views/IsometricOffice.js';
-import { ViewSwitcher, type ViewKind } from './views/ViewSwitcher.js';
+import { CharacterPanel } from './views/CharacterPanel.js';
 import { OnboardingScreen } from './views/OnboardingScreen.js';
 import { SettingsScreen } from './views/SettingsScreen.js';
 import { EventTicker } from './components/EventTicker.js';
@@ -14,7 +13,6 @@ export function App() {
   const connected = useCharacterStore((s) => s.connected);
   const events = useCharacterStore((s) => s.events);
   const configVersion = useCharacterStore((s) => s.configVersion);
-  const [view, setView] = useState<ViewKind>('office');
   const [configs, setConfigs] = useState<CharacterConfig[]>([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [dismissed, setDismissed] = useState(
@@ -45,7 +43,6 @@ export function App() {
       <header className="app-header">
         <h2 className="app-title">Claude Office Story</h2>
         <div className="app-header-right">
-          <ViewSwitcher active={view} onChange={setView} />
           <button className="header-btn" onClick={() => setSettingsOpen(true)} title="팀 설정">⚙ SETUP</button>
           <span className={`conn-pill ${connected ? 'on' : ''}`}>
             {connected ? 'ONLINE' : 'OFFLINE'}
@@ -56,10 +53,15 @@ export function App() {
         {showOnboarding ? (
           <OnboardingScreen onComplete={completeOnboarding} />
         ) : (
-          view === 'grid' ? <GridDashboard configs={configs} /> : <IsometricOffice configs={configs} />
+          <div className="office-layout">
+            <div className="office-canvas-area">
+              <IsometricOffice configs={configs} />
+            </div>
+            <CharacterPanel configs={configs} />
+          </div>
         )}
       </main>
-      {view === 'grid' && !showOnboarding && <CapabilityStrip configs={configs} />}
+      {!showOnboarding && <CapabilityStrip configs={configs} />}
       <EventTicker />
       {settingsOpen && (
         <SettingsScreen configs={configs} onClose={() => setSettingsOpen(false)} onSaved={setConfigs} />
