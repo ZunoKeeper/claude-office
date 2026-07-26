@@ -44,6 +44,9 @@ clone 직후 아래 한 번이면 Volta 설치 → Node 22 pin → 의존성 설
   - 캐릭터 이름표는 캔버스 밖 **HTML 네임태그** (고정 11px) — 씬이 확대돼도 흐려지지 않고,
     걷는 캐릭터를 매 프레임 따라갑니다.
   - **✎ 위치 편집**: 캐릭터 드래그로 좌석 이동, 방향(N/E/S/W)·자세(서기/앉기/타이핑) 변경.
+    편집 모드에서는 **동선 마커**(⚑ 탕비실/회의 테이블 등)도 드래그로 옮길 수 있음 —
+    툴 실행 시 캐릭터가 걸어가는 목적지가 바뀐다. 기본값은 `config/toolDestinations.json`,
+    편집 결과는 `~/.claude-office/destinationOverrides.json`에 저장.
 - **Capability Strip** — 하단 상시 표시. 왼쪽 라벨 컬럼(MODELS/SUB AGENTS/SKILLS/PLUGINS)과
   오른쪽 칩 영역의 2단 구성. 모델 패밀리(관측 시 하이라이트) · Sub Agent 종류(담당 캐릭터별) ·
   활성 Skills(플러그인별) · 활성 플러그인 (`GET /env/capabilities`, 서버 기동 시 1회 스캔).
