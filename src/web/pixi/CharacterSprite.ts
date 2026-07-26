@@ -7,7 +7,10 @@ import { buildEmoteTextures, type EmoteId } from './sprites/emotes.js';
 import type { Direction, PoseKey } from './sprites/types.js';
 import { SPRITE_H } from './sprites/types.js';
 
-export const PIXEL_SCALE = 3;
+/** 48×64 합성 결과를 화면에서 1.5배 — 기존 24×32×3과 같은 72×96 풋프린트. */
+export const PIXEL_SCALE = 1.5;
+/** 이모트 아트는 여전히 저해상 원본이라 별도 3배 스케일 유지. */
+const EMOTE_SCALE = 3;
 
 const WALK_FRAME_MS = 160;
 const TYPE_FRAME_MS = 220;
@@ -116,7 +119,7 @@ export class CharacterSprite extends Container {
 
     this.emoteSprite = new Sprite();
     this.emoteSprite.anchor.set(0.5, 0.5);
-    this.emoteSprite.scale.set(PIXEL_SCALE);
+    this.emoteSprite.scale.set(EMOTE_SCALE);
     this.emoteSprite.visible = false;
     this.emoteSprite.y = -SPRITE_H * PIXEL_SCALE - 10;
     this.addChild(this.emoteSprite);
@@ -288,7 +291,7 @@ export class CharacterSprite extends Container {
         // Pop-in scale during first 180ms
         const popIn = Math.min(1, this.emoteElapsedMs / 180);
         const eased = popIn < 0.7 ? popIn * 1.4 : 1 + (1 - popIn) * 0.2;
-        this.emoteSprite.scale.set(PIXEL_SCALE * eased);
+        this.emoteSprite.scale.set(EMOTE_SCALE * eased);
       }
     }
   }

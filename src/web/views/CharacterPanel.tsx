@@ -12,6 +12,8 @@ function empty(id: CharacterId): CharacterState {
  */
 export function CharacterPanel({ configs }: { configs: CharacterConfig[] }) {
   const characters = useCharacterStore((s) => s.characters);
+  // 스프라이트 편집 저장 시 아바타(SVG) 재합성을 위해 구독만 한다
+  useCharacterStore((s) => s.spritesVersion);
   const configById = new Map(configs.map((c) => [c.id, c]));
 
   return (

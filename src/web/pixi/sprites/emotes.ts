@@ -1,5 +1,8 @@
 import { Texture } from 'pixi.js';
-import type { Palette, PixelMatrix } from './types.js';
+
+/** 이모트 전용 도트 표기 — 캐릭터 스프라이트와 무관한 독립 자산. */
+type PixelMatrix = readonly string[];
+type Palette = Record<string, string | null>;
 
 export const EMOTE_SIZE = 12;
 export type EmoteId = 'question' | 'exclaim' | 'sweat' | 'idea' | 'heart';

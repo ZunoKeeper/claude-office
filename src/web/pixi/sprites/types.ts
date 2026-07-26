@@ -1,62 +1,27 @@
-import type { CharacterId } from '../../../shared/character.js';
+export { FRAME_W as SPRITE_W, FRAME_H as SPRITE_H } from './frames.js';
+export type { Direction } from './frames.js';
+import type { Direction } from './frames.js';
 
-export const SPRITE_W = 24;
-export const SPRITE_H = 32;
-
-export type Direction = 'S' | 'N' | 'E' | 'W';
-
+/** MetroCity 시트 기반 포즈 — 걷기는 6프레임 사이클. */
 export type PoseKey =
-  | 'stand-S' | 'stand-N' | 'stand-E' | 'stand-W'
-  | 'walk1-S' | 'walk1-N' | 'walk1-E' | 'walk1-W'
-  | 'walk2-S' | 'walk2-N' | 'walk2-E' | 'walk2-W'
+  | `stand-${Direction}`
+  | `walk${1 | 2 | 3 | 4 | 5 | 6}-${Direction}`
   | 'sit' | 'type1' | 'type2';
 
+const DIRS: Direction[] = ['S', 'N', 'E', 'W'];
+
 export const ALL_POSES: PoseKey[] = [
-  'stand-S', 'stand-N', 'stand-E', 'stand-W',
-  'walk1-S', 'walk1-N', 'walk1-E', 'walk1-W',
-  'walk2-S', 'walk2-N', 'walk2-E', 'walk2-W',
+  ...DIRS.map((d) => `stand-${d}` as PoseKey),
+  ...([1, 2, 3, 4, 5, 6] as const).flatMap((n) => DIRS.map((d) => `walk${n}-${d}` as PoseKey)),
   'sit', 'type1', 'type2',
 ];
 
-/** 24×32 pixel matrix stored as 32 rows of 24-character strings. */
-export type PixelMatrix = readonly string[];
-
-/** Symbol → hex color. Any symbol resolving to null or 'transparent' is skipped. */
-export type Palette = Record<string, string | null>;
-
-/** Reserved base symbols (present in shared body poses). */
-export type BaseSymbol =
-  | '.'  // transparent
-  | 'K'  // outline (near-black)
-  | 'k'  // soft outline (secondary shading)
-  | 'F'  // skin base
-  | 'f'  // skin shadow
-  | 'S'  // shirt / outfit base
-  | 's'  // shirt shadow
-  | 'P'  // pants base
-  | 'p'  // pants shadow
-  | 'A'  // arm skin (visible when not fully sleeved)
-  | 'T'  // outfit accent (tie, badge)
-  | 'Z'; // shoes
-
-/** Symbols added by head/face/accessory overlays. */
-export type OverlaySymbol =
-  | 'H'  // hair base
-  | 'h'  // hair highlight
-  | 'E'  // eye
-  | 'M'  // mouth
-  | 'G'  // glasses frame
-  | 'a'  // accessory secondary
-  | 'X'; // accessory main (avoid A collision with arm)
-
-export type CharacterKey = CharacterId;
-
-export interface CharacterSpriteSpec {
-  palette: Palette;
-  /** Head/hair overlay per direction. Same 24×32 grid, only hair pixels set (H/h). */
-  head: Record<Direction, PixelMatrix>;
-  /** Face overlay: eyes, mouth, glasses. Applied for S/E/W (N shows back of head only). */
-  face: Record<Direction, PixelMatrix>;
-  /** Optional accessory overlay per pose. */
-  accessory?: Partial<Record<PoseKey, PixelMatrix>>;
+/** 포즈 → 시트 프레임 매핑. 앉기/타이핑 전용 프레임이 시트에 없어
+ *  stand-S로 대체하고, type2만 1px 아래로 내려 타이핑 움직임을 흉내낸다. */
+export function poseToFrame(pose: PoseKey): { dir: Direction; frame: number; yOff: number } {
+  if (pose === 'sit' || pose === 'type1') return { dir: 'S', frame: 0, yOff: 0 };
+  if (pose === 'type2') return { dir: 'S', frame: 0, yOff: 1 };
+  const [kind, dir] = pose.split('-') as [string, Direction];
+  if (kind === 'stand') return { dir, frame: 0, yOff: 0 };
+  return { dir, frame: Number(kind.slice(4)) - 1, yOff: 0 };
 }

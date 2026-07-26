@@ -1,5 +1,7 @@
+import { useEffect, useRef } from 'react';
 import type { CharacterId } from '../../shared/character.js';
 import { composeSprite } from '../pixi/sprites/compose.js';
+import { SPRITE_H, SPRITE_W } from '../pixi/sprites/types.js';
 import type { PoseKey } from '../pixi/sprites/types.js';
 
 interface Props {
@@ -9,30 +11,25 @@ interface Props {
 }
 
 export function PixelAvatar({ id, size = 48, pose = 'stand-S' }: Props) {
-  const { matrix, palette, width, height } = composeSprite(id, pose);
-  const rects: JSX.Element[] = [];
-  for (let y = 0; y < height; y++) {
-    const row = matrix[y];
-    if (!row) continue;
-    for (let x = 0; x < row.length; x++) {
-      const ch = row[x];
-      if (!ch || ch === '.') continue;
-      const color = palette[ch];
-      if (!color) continue;
-      rects.push(<rect key={`${y}-${x}`} x={x} y={y} width={1} height={1} fill={color} />);
+  const ref = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const ctx = ref.current?.getContext('2d');
+    if (!ctx) return;
+    ctx.imageSmoothingEnabled = false;
+    ctx.clearRect(0, 0, SPRITE_W, SPRITE_H);
+    try {
+      ctx.drawImage(composeSprite(id, pose), 0, 0);
+    } catch {
+      // 시트 미로드(App이 로딩을 게이팅하므로 정상 흐름에선 발생하지 않음)
     }
-  }
-  const scaledHeight = Math.round((size * height) / width);
+  });
   return (
-    <svg
+    <canvas
+      ref={ref}
+      width={SPRITE_W}
+      height={SPRITE_H}
       className="pixel-avatar"
-      viewBox={`0 0 ${width} ${height}`}
-      width={size}
-      height={scaledHeight}
-      shapeRendering="crispEdges"
-      style={{ imageRendering: 'pixelated', display: 'block' }}
-    >
-      {rects}
-    </svg>
+      style={{ width: size, height: size, imageRendering: 'pixelated', display: 'block' }}
+    />
   );
 }

@@ -72,6 +72,7 @@ export function IsometricOffice({ configs }: { configs: CharacterConfig[] }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const characters = useCharacterStore((s) => s.characters);
   const configVersion = useCharacterStore((s) => s.configVersion);
+  const spritesVersion = useCharacterStore((s) => s.spritesVersion);
   const [editMode, setEditMode] = useState(false);
   const [selectedId, setSelectedId] = useState<CharacterId | null>(null);
   const [destinations, setDestinations] = useState<ToolDestination[]>([]);
@@ -136,12 +137,14 @@ export function IsometricOffice({ configs }: { configs: CharacterConfig[] }) {
       }
     });
     return () => { scene.destroy(); sceneRef.current = null; };
-  }, []);
+    // spritesVersion이 바뀌면 (스프라이트 편집 저장) 씬을 새로 만들어
+    // 새 atlas 텍스처로 다시 그린다.
+  }, [spritesVersion]);
 
   useEffect(() => {
     const states = ALL_CHARACTER_IDS.map((id) => characters[id] ?? empty(id));
     sceneRef.current?.setCharacters(states, configs);
-  }, [characters, configs]);
+  }, [characters, configs, spritesVersion]);
 
   // 동선(툴 목적지) — configUpdated 브로드캐스트마다 재취득해 씬에 주입
   useEffect(() => {
@@ -150,7 +153,7 @@ export function IsometricOffice({ configs }: { configs: CharacterConfig[] }) {
 
   useEffect(() => {
     sceneRef.current?.setDestinations(destinations);
-  }, [destinations]);
+  }, [destinations, spritesVersion]);
 
   // 캐릭터×목적지별 걷기 경유점
   useEffect(() => {
@@ -159,12 +162,12 @@ export function IsometricOffice({ configs }: { configs: CharacterConfig[] }) {
 
   useEffect(() => {
     sceneRef.current?.setWaypoints(waypoints);
-  }, [waypoints]);
+  }, [waypoints, spritesVersion]);
 
   useEffect(() => {
     sceneRef.current?.setEditMode(editMode);
     if (!editMode) setSelectedId(null);
-  }, [editMode]);
+  }, [editMode, spritesVersion]);
 
   // 선택 캐릭터가 바뀌면 경로 편집 대상도 초기화
   useEffect(() => { setPathDest(null); }, [selectedId, editMode]);
@@ -205,7 +208,7 @@ export function IsometricOffice({ configs }: { configs: CharacterConfig[] }) {
         position: 'relative', width: STAGE_W, height: STAGE_H,
         transform: `translateX(${fit.offsetX}px) scale(${fit.scale})`, transformOrigin: 'top left',
       }}>
-        <canvas ref={canvasRef} style={{ display: 'block' }} />
+        <canvas key={spritesVersion} ref={canvasRef} style={{ display: 'block' }} />
 
         {editMode && selected && (
           <EditPanel

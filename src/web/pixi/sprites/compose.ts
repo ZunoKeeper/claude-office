@@ -1,79 +1,50 @@
 import type { CharacterId } from '../../../shared/character.js';
-import { bodyStand, bodyWalk1, bodyWalk2, bodySit, bodyType1, bodyType2 } from './bodyPoses.js';
-import { HEADS } from './heads.js';
-import { FACES } from './faces.js';
-import { ACCESSORIES } from './accessories.js';
-import { PALETTES } from './palettes.js';
-import type { Direction, Palette, PixelMatrix, PoseKey } from './types.js';
-import { SPRITE_H, SPRITE_W } from './types.js';
+import {
+  DEFAULT_APPEARANCES, isValidAppearance,
+  type AppearanceDoc, type CharacterAppearance,
+} from '../../../shared/sprites.js';
+import { FRAME_H, FRAME_W, frameRect } from './frames.js';
+import { getSheet } from './sheets.js';
+import { poseToFrame, type PoseKey } from './types.js';
 
 /**
- * Pure matrix composition — no DOM, no Pixi. Used by:
- *   - atlas.ts (browser, wraps result in a canvas → PIXI.Texture)
- *   - PixelAvatar.tsx (SVG portrait for grid cards)
+ * MetroCity 시트 합성 — 그림자 → 몸통(피부) → 의상 → 헤어 순서로
+ * 32×32 캔버스에 겹쳐 그린다. atlas.ts(씬 텍스처)와 PixelAvatar(카드),
+ * AppearanceEditor(설정창 미리보기)가 공유한다.
  */
 
-export function extractDirection(pose: PoseKey): Direction {
-  if (pose.endsWith('-N')) return 'N';
-  if (pose.endsWith('-E')) return 'E';
-  if (pose.endsWith('-W')) return 'W';
-  return 'S';
+let activeDoc: AppearanceDoc = {};
+
+/** 서버 저장 문서 주입 — App.tsx가 /config/sprites 취득 시 호출. */
+export function setAppearances(doc: AppearanceDoc | null | undefined): void {
+  activeDoc = doc ?? {};
 }
 
-export function pickBody(pose: PoseKey): PixelMatrix {
-  if (pose === 'sit') return bodySit;
-  if (pose === 'type1') return bodyType1;
-  if (pose === 'type2') return bodyType2;
-  if (pose.startsWith('walk1')) return bodyWalk1;
-  if (pose.startsWith('walk2')) return bodyWalk2;
-  return bodyStand;
+export function getAppearance(char: CharacterId): CharacterAppearance {
+  const a = activeDoc[char];
+  return a && isValidAppearance(a) ? a : DEFAULT_APPEARANCES[char];
 }
 
-function stampLayer(rows: string[], overlay: PixelMatrix): void {
-  for (let y = 0; y < SPRITE_H; y++) {
-    const src = overlay[y];
-    if (!src) continue;
-    const dst = rows[y];
-    let next = '';
-    for (let x = 0; x < SPRITE_W; x++) {
-      const c = src[x] ?? '.';
-      next += c !== '.' ? c : (dst[x] ?? '.');
-    }
-    rows[y] = next;
+export function composeFrame(a: CharacterAppearance, pose: PoseKey): HTMLCanvasElement {
+  const { dir, frame, yOff } = poseToFrame(pose);
+  const canvas = document.createElement('canvas');
+  canvas.width = FRAME_W;
+  canvas.height = FRAME_H;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('compose: 2D context unavailable');
+  ctx.imageSmoothingEnabled = false;
+  // 그림자는 단일 프레임이고 타이핑 오프셋의 영향을 받지 않는다.
+  ctx.drawImage(getSheet('shadow'), 0, 0);
+  const layers: Array<{ sheet: string; row: number }> = [{ sheet: 'body', row: a.skin }];
+  if (a.outfit) layers.push(a.outfit);
+  if (a.hair) layers.push(a.hair);
+  for (const { sheet, row } of layers) {
+    const r = frameRect(dir, frame, row);
+    ctx.drawImage(getSheet(sheet), r.x, r.y, r.w, r.h, 0, yOff, r.w, r.h);
   }
+  return canvas;
 }
 
-function mirrorMatrix(rows: string[]): string[] {
-  return rows.map((r) => r.split('').reverse().join(''));
-}
-
-export interface Composed {
-  matrix: string[];
-  palette: Palette;
-  width: number;
-  height: number;
-}
-
-export function composeSprite(char: CharacterId, pose: PoseKey): Composed {
-  const dir = extractDirection(pose);
-  const body = pickBody(pose);
-  const head = HEADS[char][dir];
-  const face = FACES[dir];
-  const acc = ACCESSORIES[char][dir];
-  // Layer order: body → head → face → accessory. When facing W the whole
-  // composite mirrors so that E-authored overlays (heads.ts, faces.ts,
-  // accessories.ts all use the E matrix for W) end up on the correct side.
-  // Asymmetric S-only accessories (planner's chest badge) never hit the mirror
-  // path because their S/N/E/W sets are empty for the mirrored directions.
-  const rows = [...body];
-  stampLayer(rows, head);
-  stampLayer(rows, face);
-  stampLayer(rows, acc);
-  const finalRows = dir === 'W' ? mirrorMatrix(rows) : rows;
-  return {
-    matrix: finalRows,
-    palette: PALETTES[char],
-    width: SPRITE_W,
-    height: SPRITE_H,
-  };
+export function composeSprite(char: CharacterId, pose: PoseKey): HTMLCanvasElement {
+  return composeFrame(getAppearance(char), pose);
 }
