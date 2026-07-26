@@ -8,6 +8,7 @@ import type { CharacterId } from '../../src/shared/character.js';
 const POOL: DialogueEntry[] = [
   { characterId: 'team-lead', trigger: { eventType: 'ambient', status: 'working' }, templates: ['일하는 중'] },
   { characterId: 'team-lead', trigger: { eventType: 'ambient', status: 'error' }, templates: ['에러 잡는 중'] },
+  { characterId: 'team-lead', trigger: { eventType: 'ambient', status: 'idle' }, templates: ['커피나 한 잔'] },
 ];
 
 function dialogues(): Map<CharacterId, DialogueEntry[]> {
@@ -63,13 +64,53 @@ describe('startAmbientDialogue', () => {
     }
   });
 
-  it('stays silent for idle characters', () => {
+  it('idle 캐릭터는 느린 케이던스로 잡담한다', () => {
     vi.useFakeTimers();
     const store = createStateStore(['team-lead']);
-    const stop = startAmbientDialogue(store, dialogues(), { tickMs: 100, minGapMs: 200, jitterMs: 0 });
+    expect(store.get('team-lead').status).toBe('idle');
+
+    const stop = startAmbientDialogue(store, dialogues(), {
+      tickMs: 100, minGapMs: 200, jitterMs: 0, idleMinGapMs: 2000, idleJitterMs: 0,
+    });
+    try {
+      // 첫 idle 발화 지연(idleMinGap의 0.4~1.0배) 안에서는 침묵
+      vi.advanceTimersByTime(500);
+      expect(store.get('team-lead').lastLine).toBeUndefined();
+      // 지연 상한 이후에는 발화
+      vi.advanceTimersByTime(2500);
+      expect(store.get('team-lead').lastLine?.text).toBe('커피나 한 잔');
+    } finally {
+      stop();
+    }
+  });
+
+  it('idle 잡담 풀이 없는 캐릭터는 여전히 침묵한다', () => {
+    vi.useFakeTimers();
+    const store = createStateStore(['tester']);
+    const m = new Map<CharacterId, DialogueEntry[]>();
+    m.set('tester', [
+      { characterId: 'tester', trigger: { eventType: 'ambient', status: 'working' }, templates: ['일하는 중'] },
+    ]);
+    const stop = startAmbientDialogue(store, m, { tickMs: 100, idleMinGapMs: 500, idleJitterMs: 0 });
     try {
       vi.advanceTimersByTime(5000);
-      expect(store.get('team-lead').lastLine).toBeUndefined();
+      expect(store.get('tester').lastLine).toBeUndefined();
+    } finally {
+      stop();
+    }
+  });
+
+  it('활동 상태로 바뀌면 활동 케이던스로 발화한다 (idle due가 남아있어도)', () => {
+    vi.useFakeTimers();
+    const store = createStateStore(['team-lead']);
+    const stop = startAmbientDialogue(store, dialogues(), {
+      tickMs: 100, minGapMs: 200, jitterMs: 0, idleMinGapMs: 60000, idleJitterMs: 0,
+    });
+    try {
+      vi.advanceTimersByTime(1000); // idle due는 아직 한참 남음
+      store.applyEvent('team-lead', { type: 'tool.pre', ts: Date.now(), sessionId: 's', agentId: 'a', toolName: 'Edit', input: {} });
+      vi.advanceTimersByTime(3000); // 활동 첫 발화(≤2.7s) 경과
+      expect(store.get('team-lead').lastLine?.text).toBe('일하는 중');
     } finally {
       stop();
     }
