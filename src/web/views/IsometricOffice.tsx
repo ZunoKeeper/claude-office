@@ -53,8 +53,9 @@ export function IsometricOffice({ configs }: { configs: CharacterConfig[] }) {
     const panel = document.querySelector('.character-panel');
     const compute = () => {
       const availW = el.clientWidth;
+      // 16 = office-canvas-area 상단 패딩 8 + 하단 대칭 여백 8
       const availH = appMain
-        ? appMain.clientHeight - (panel instanceof HTMLElement ? panel.offsetHeight : 0) - 48
+        ? appMain.clientHeight - (panel instanceof HTMLElement ? panel.offsetHeight : 0) - 16
         : STAGE_H;
       const scale = Math.max(0.3, Math.min(availW / STAGE_W, availH / STAGE_H));
       setFit({ scale, offsetX: Math.max(0, (availW - STAGE_W * scale) / 2) });
