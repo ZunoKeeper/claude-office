@@ -1,5 +1,5 @@
 import chokidar, { type FSWatcher } from 'chokidar';
-import { createReadStream } from 'node:fs';
+import { createReadStream, statSync } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import ndjson from 'ndjson';
 import path from 'node:path';
@@ -41,11 +41,22 @@ export function createLogTailer(rootDir: string, onLine: Options['onLine']): Han
         persistent: true,
         awaitWriteFinish: { stabilityThreshold: 100, pollInterval: 50 },
       });
+      // 기동 시점에 이미 존재하던 transcript는 EOF에서부터 tail한다.
+      // 히스토리를 재생하면 중단된 과거 세션의 tool_result 없는 Agent tool_use가
+      // 고아 agent.start로 들어와 캐릭터 큐에 영구히 남는다.
+      let initialScan = true;
       watcher.on('add', (f) => {
+        if (initialScan) {
+          try { positions.set(f, statSync(f).size); } catch { positions.set(f, 0); }
+          return;
+        }
         positions.set(f, 0);
         void readFromPosition(f);
       });
       watcher.on('change', (f) => void readFromPosition(f));
+      await new Promise<void>((resolve) => {
+        watcher!.once('ready', () => { initialScan = false; resolve(); });
+      });
     },
     async stop() {
       await watcher?.close();
