@@ -155,6 +155,7 @@ export class OfficeScene {
           sprite.y = seat.y;
           sprite.worldPos = { x: seat.x, y: seat.y };
         }
+        sprite.setAway(false);
         sprite.setDirection(seatDir);
         sprite.setSeatPose(seatPose);
       }
@@ -170,6 +171,7 @@ export class OfficeScene {
         if (dest) {
           this.wandering.delete(s.id);
           this.lastDestId.set(s.id, dest.id);
+          sprite.setAway(true); // 목적지엔 의자가 없다 — 서서 작업
           const wps = this.waypoints[s.id]?.[dest.id] ?? [];
           void this.walkPath(sprite, [...wps, { x: dest.x, y: dest.y }]);
         } else {
@@ -178,7 +180,10 @@ export class OfficeScene {
           this.lastDestId.delete(s.id);
           this.wandering.delete(s.id);
           void this.walkPath(sprite, [...backWps, { x: seat.x, y: seat.y }]).then((completed) => {
-            if (completed) sprite?.setDirection(seatDir);
+            if (completed) {
+              sprite?.setAway(false);
+              sprite?.setDirection(seatDir);
+            }
           });
         }
       }
@@ -229,6 +234,7 @@ export class OfficeScene {
     const seat = this.seats.get(id);
     if (!dest || !seat) return;
     this.wandering.add(id);
+    sprite.setAway(true);
     try {
       const wps = this.waypoints[id]?.[dest.id] ?? [];
       const arrived = await this.walkPath(sprite, [...wps, { x: dest.x, y: dest.y }]);
@@ -238,7 +244,10 @@ export class OfficeScene {
       await new Promise((r) => setTimeout(r, 2000 + Math.random() * 2500));
       if (this.destroyed || this.moveSeq.get(id) !== myToken || this.statuses.get(id) !== 'idle') return;
       const back = await this.walkPath(sprite, [...[...wps].reverse(), { x: seat.x, y: seat.y }]);
-      if (back) sprite.setDirection(this.seatDirs.get(id) ?? 'S');
+      if (back) {
+        sprite.setAway(false);
+        sprite.setDirection(this.seatDirs.get(id) ?? 'S');
+      }
     } finally {
       this.wandering.delete(id);
     }
@@ -263,6 +272,7 @@ export class OfficeScene {
             s.y = seat.y;
             s.worldPos = { x: seat.x, y: seat.y };
           }
+          s.setAway(false);
         }
       }
       this.wandering.clear();

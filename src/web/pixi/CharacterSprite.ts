@@ -60,6 +60,8 @@ export class CharacterSprite extends Container {
   private animState: AnimState = 'idle';
   private direction: Direction = 'S';
   private seatPose: SeatPose = 'stand';
+  /** 자리를 떠나 있는 동안(목적지·배회)은 의자가 없으므로 앉기/타이핑 대신 서기. */
+  private away = false;
 
   private currentEmote: EmoteId | null = null;
   private emoteExpiresAt: number | null = null;
@@ -82,6 +84,22 @@ export class CharacterSprite extends Container {
   /** 이동 트윈이 진행 중인지 — 배회 스케줄러가 겹침을 피하는 데 쓴다. */
   get isMoving(): boolean {
     return this.tweenTo !== undefined;
+  }
+
+  /** 자리 이탈 여부 설정. 떠나 있으면 앉기/타이핑 자세 대신 서 있는다. */
+  setAway(away: boolean): void {
+    if (this.away === away) return;
+    this.away = away;
+    if (!this.tweenTo) {
+      const { anim } = deriveAnimStateAndEmote(this.status, this.seatPose);
+      this.animState = this.effectiveAnim(anim);
+      this.updateTexture();
+    }
+  }
+
+  /** away 상태에서는 의자가 필요한 자세를 서기로 바꾼다. */
+  private effectiveAnim(anim: AnimState): AnimState {
+    return this.away && (anim === 'sitting' || anim === 'typing') ? 'idle' : anim;
   }
 
   // 이름표는 캔버스 밖 HTML 오버레이(IsometricOffice)가 그린다 — 캔버스가
@@ -118,7 +136,7 @@ export class CharacterSprite extends Container {
     // If status is idle-like, resting anim just changed. Re-derive.
     if (this.status === 'idle' || this.status === 'off') {
       const { anim } = deriveAnimStateAndEmote(this.status, this.seatPose);
-      this.animState = anim;
+      this.animState = this.effectiveAnim(anim);
       this.updateTexture();
     }
   }
@@ -133,7 +151,7 @@ export class CharacterSprite extends Container {
     // character arrives — intentional so the walk cycle isn't interrupted.
     if (!this.tweenTo) {
       const { anim, emote, timedEmote } = deriveAnimStateAndEmote(next, this.seatPose);
-      this.animState = anim;
+      this.animState = this.effectiveAnim(anim);
       if (emote) this.setEmote(emote, timedEmote ? DONE_EMOTE_MS : null);
       else this.clearEmote();
     }
@@ -228,7 +246,7 @@ export class CharacterSprite extends Container {
         done();
         // Return to derived state from current status
         const { anim, emote, timedEmote } = deriveAnimStateAndEmote(this.status, this.seatPose);
-        this.animState = anim;
+        this.animState = this.effectiveAnim(anim);
         this.frame = 0;
         this.frameElapsedMs = 0;
         if (emote) this.setEmote(emote, timedEmote ? DONE_EMOTE_MS : null);
