@@ -82,7 +82,7 @@ html, body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  overflow-x: auto; /* 캔버스(920px)+패널(300px)보다 좁은 창은 가로 스크롤 */
+  overflow-x: auto; /* 캔버스(920px)보다 좁은 창은 가로 스크롤 */
 }
 
 /* App shell */
@@ -157,12 +157,12 @@ html, body {
   50% { box-shadow: 0 0 8px rgba(98,194,111,.8); }
 }
 
-/* 통합 화면 — 오피스 캔버스 + 오른쪽 캐릭터 패널 */
+/* 통합 화면 — 상단 가로 캐릭터 패널 + 오피스 캔버스 */
 .office-layout {
   display: flex;
-  align-items: stretch;
-  min-width: 1220px; /* 캔버스 920 + 패널 300 */
-  height: 100%;
+  flex-direction: column;
+  min-width: 920px; /* 캔버스 폭 */
+  min-height: 100%;
 }
 
 .office-canvas-area {
@@ -172,74 +172,14 @@ html, body {
 }
 
 .character-panel {
-  width: 300px;
   flex-shrink: 0;
-  overflow-y: auto;
   padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  border-left: 3px solid var(--ink);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
+  border-bottom: 3px solid var(--ink);
   background: var(--floor-2);
 }
-
-.panel-entry { cursor: pointer; }
-.panel-entry .desk { cursor: pointer; }
-
-/* Compact card — one-line character summary */
-.compact-card {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  background: var(--paper);
-  border: 2px solid var(--ink);
-  box-shadow: var(--shadow-sm);
-  font-size: 12px;
-  transition: transform 100ms;
-}
-
-.compact-card:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--ink); }
-
-.compact-name {
-  font-weight: bold;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.compact-activity {
-  flex: 1;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: var(--ink-muted);
-  font-size: 11px;
-}
-
-.compact-queue {
-  flex-shrink: 0;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 8px;
-  padding: 2px 5px;
-  background: var(--gold);
-  border: 1px solid var(--ink);
-}
-
-.compact-status-dot {
-  flex-shrink: 0;
-  width: 10px;
-  height: 10px;
-  border: 1px solid var(--ink);
-  background: var(--st-off);
-}
-
-.compact-card.status-idle .compact-status-dot { background: var(--st-idle); }
-.compact-card.status-thinking .compact-status-dot { background: var(--st-thinking); }
-.compact-card.status-working .compact-status-dot { background: var(--st-working); }
-.compact-card.status-blocked .compact-status-dot { background: var(--st-blocked); }
-.compact-card.status-error .compact-status-dot { background: var(--st-error); }
-.compact-card.status-done .compact-status-dot { background: var(--st-done); }
 
 /* Character card — chunky desk (comfortable) */
 .desk {
@@ -253,7 +193,6 @@ html, body {
   gap: 10px;
   transition: transform 120ms;
   font-size: 12px;
-  min-height: 210px;
   cursor: help;
 }
 
@@ -630,7 +569,6 @@ html, body {
   color: var(--ink);
   border-top: 1px dashed var(--floor-3);
   padding-top: 5px;
-  margin-top: auto;
   letter-spacing: 0.3px;
   flex-wrap: wrap;
 }

@@ -54,10 +54,10 @@ export function App() {
           <OnboardingScreen onComplete={completeOnboarding} />
         ) : (
           <div className="office-layout">
+            <CharacterPanel configs={configs} />
             <div className="office-canvas-area">
               <IsometricOffice configs={configs} />
             </div>
-            <CharacterPanel configs={configs} />
           </div>
         )}
       </main>

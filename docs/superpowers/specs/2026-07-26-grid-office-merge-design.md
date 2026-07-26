@@ -10,10 +10,10 @@ GRID 모드와 OFFICE 모드를 하나의 화면으로 통합한다. GRID에서�
 
 ## 확정 사항
 
-- 표시 방식: 오피스 캔버스 오른쪽에 **상시 표시** 사이드 패널 (접이식 아님)
-- 카드 형태: **컴팩트 카드 + 클릭 확장** — 기본은 한 줄 요약, 클릭 시 기존
-  CharacterCard 전체 렌더. 여러 카드 동시 확장 가능. 확장 상태는 로컬 state로만
-  유지 (localStorage 저장 안 함)
+- 표시 방식: 오피스 캔버스 **상단에 가로로 상시 표시**되는 패널
+  (초기 설계는 오른쪽 세로 + 컴팩트/클릭 확장이었으나, 사용자 피드백으로
+  상단 가로 배치 + 전체 카드 상시 표시로 변경)
+- 카드 형태: 기존 `CharacterCard` 전체를 항상 렌더 — 접이식/컴팩트 없음
 - GRID 모드: `GridDashboard.tsx`, `ViewSwitcher.tsx` 및 App의 `view` state 삭제
 - CapabilityStrip: 통합 화면 하단에 항상 표시 (기존엔 GRID에서만 표시)
 - 레이아웃: flex 형제 배치 — 오버레이 아님
@@ -21,21 +21,21 @@ GRID 모드와 OFFICE 모드를 하나의 화면으로 통합한다. GRID에서�
 ## 화면 구조
 
 ```
-┌────────────────────────┬──────────┐
-│                        │ 캐릭터    │
-│   오피스 캔버스 920px    │ 패널      │
-│   (남는 공간 중앙 정렬)   │ ~300px   │
-│                        │ (독립     │
-│                        │  스크롤)  │
-├────────────────────────┴──────────┤
+┌───────────────────────────────────┐
+│ 캐릭터 패널 — 전체 카드 가로 나열      │
+│ (grid auto-fill minmax 280px)     │
+├───────────────────────────────────┤
+│   오피스 캔버스 920px (중앙 정렬)     │
+├───────────────────────────────────┤
 │ CapabilityStrip (항상 표시)         │
 ├───────────────────────────────────┤
 │ ► EventTicker                     │
 └───────────────────────────────────┘
 ```
 
-창 폭이 캔버스+패널(~1220px)보다 좁으면 `app-main`에 가로 스크롤을 허용한다
-(현재 `overflow-x: hidden` → 조정).
+창 폭이 캔버스(920px)보다 좁으면 `app-main`에 가로 스크롤을 허용한다
+(기존 `overflow-x: hidden` → `auto`). 카드가 한 줄에 다 안 들어가면
+grid auto-fill로 여러 줄로 감싼다.
 
 ## 컴포넌트 변경
 
@@ -43,15 +43,14 @@ GRID 모드와 OFFICE 모드를 하나의 화면으로 통합한다. GRID에서�
 |------|------|
 | `src/web/views/GridDashboard.tsx` | 삭제 |
 | `src/web/views/ViewSwitcher.tsx` | 삭제 |
-| `src/web/views/CharacterPanel.tsx` | 신규 — 컴팩트 카드 세로 나열 |
+| `src/web/views/CharacterPanel.tsx` | 신규 — 전체 카드 가로 나열 |
 | `src/web/App.tsx` | `view` state·전환 버튼 제거, 오피스+패널+CapabilityStrip 상시 렌더 |
 | `src/web/components/CharacterCard.tsx` | 수정 없음 (확장 시 그대로 재사용) |
 | `src/web/styles.css` | `.office-layout` flex, 패널·컴팩트 카드 스타일, `.grid-office` 제거 |
 
-### CharacterPanel 컴팩트 카드
+### CharacterPanel
 
-- 내용: 작은 아바타(28px) + 이름 + 상태 점 + 현재 활동 한 줄(말줄임) + 큐 개수 배지
-- 클릭 → 해당 카드 자리에서 기존 `CharacterCard` 전체 렌더로 토글
+- 캐릭터별 기존 `CharacterCard`를 항상 전체 렌더 (접이식 없음)
 - props: `configs: CharacterConfig[]` (GridDashboard와 동일 패턴), 상태는
   `useCharacterStore`에서 구독
 
