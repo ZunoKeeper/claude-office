@@ -174,14 +174,24 @@ html, body {
 .character-panel {
   flex-shrink: 0;
   padding: 10px;
-  display: grid;
-  /* 카드 폭 상한 고정 — 창이 넓어져도 카드가 320px 이상 커지지 않는다 */
-  grid-template-columns: repeat(auto-fill, minmax(280px, 320px));
-  justify-content: center;
+  display: flex;
   gap: 10px;
+  /* 항상 한 줄 유지 — 폭이 모자라면 줄바꿈 대신 가로 스크롤 */
+  overflow-x: auto;
   border-bottom: 3px solid var(--ink);
   background: var(--floor-2);
 }
+
+/* 카드 폭 280~320px 고정 — 창이 넓어져도 더 커지지 않는다 */
+.character-panel .desk {
+  flex: 0 1 320px;
+  min-width: 280px;
+}
+
+/* 공간이 남으면 카드 묶음을 가운데 정렬 (overflow 시에도 왼쪽이 잘리지 않는
+   margin:auto 방식 — justify-content:center는 스크롤 시 앞부분이 잘린다) */
+.character-panel .desk:first-child { margin-left: auto; }
+.character-panel .desk:last-child { margin-right: auto; }
 
 /* Character card — chunky desk (comfortable) */
 .desk {
