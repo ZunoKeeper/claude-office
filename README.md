@@ -39,6 +39,8 @@ clone 직후 아래 한 번이면 Volta 설치 → Node 22 pin → 의존성 설
 
 - 상단 [GRID | OFFICE] 토글
   - **GRID**: 카드 대시보드 (팀원 데스크 뷰). 6인의 상태·활동·모델·스탯 한눈에.
+    하단 Capability Strip에 모델 패밀리(관측 시 하이라이트) · Sub Agent 종류(담당 캐릭터별) ·
+    활성 Skills(플러그인별) · 활성 플러그인이 표시됩니다 (`GET /env/capabilities`, 서버 기동 시 1회 스캔).
   - **OFFICE**: PixiJS 사무실 씬. 같은 픽셀 캐릭터가 각자 자리에 앉아있고, 툴 실행 시 해당 공간으로 걸어감.
 
 ## 팀 설정 (⚙ SETUP)
