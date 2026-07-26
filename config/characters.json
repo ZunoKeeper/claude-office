@@ -1,6 +1,6 @@
 [
   {
-    "id": "kim-team-lead", "name": "왕팀장", "role": "Main Session(PM)",
+    "id": "kim-team-lead", "name": "나팀장", "role": "Main Session(PM)",
     "description": "Main 세션 담당. 사용자 요구사항 접수와 조율, 매칭되지 않은 툴 호출의 폴백.",
     "officeSeat": { "x": 425, "y": 210 }, "seatDirection": "N", "spriteSheet": "characters/kim.json"
   },
@@ -10,18 +10,18 @@
     "officeSeat": { "x": 261, "y": 340 }, "seatDirection": "W", "spriteSheet": "characters/planner.json"
   },
   {
-    "id": "tester", "name": "나꼼꼼", "role": "Test Runner / Analyst",
-    "description": "Bash에서 pytest·jest·vitest·go test·cargo test·mocha 등 테스트 실행 · 결과 분석.",
+    "id": "tester", "name": "왕꼼꼼", "role": "Test Runner/Analyst",
+    "description": "Bash에서 pytest·jest·vitest·go test·cargo test·mocha 등 테스트 실행·결과 분석.",
     "officeSeat": { "x": 523, "y": 210 }, "seatDirection": "N", "spriteSheet": "characters/tester.json"
   },
   {
-    "id": "debugger", "name": "김모아", "role": "Log / Error Analyst",
+    "id": "debugger", "name": "김모아", "role": "Log/Error Analyst",
     "description": "로그 파일 읽기 (*.log) 또는 Bash에서 grep·rg·tail·journalctl 등 로그 수집·분석.",
     "officeSeat": { "x": 359, "y": 393 }, "seatDirection": "N", "spriteSheet": "characters/debugger.json"
   },
   {
     "id": "code-reviewer", "name": "최강진", "role": "Code Reviewer",
-    "description": "general-purpose 서브에이전트 (SDD 리뷰 워크플로), security-review / review 스킬 실행 시 활성.",
+    "description": "general-purpose 서브에이전트 (SDD 리뷰 워크플로), security-review/review 스킬 실행 시 활성.",
     "officeSeat": { "x": 706, "y": 464 }, "seatDirection": "N", "spriteSheet": "characters/reviewer.json"
   },
   {
