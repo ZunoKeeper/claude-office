@@ -48,6 +48,7 @@ export function IsometricOffice({ configs }: { configs: CharacterConfig[] }) {
   const fitRef = useRef(fit);
   fitRef.current = fit;
   const nametagRefs = useRef(new Map<CharacterId, HTMLDivElement>());
+  const bubbleRefs = useRef(new Map<CharacterId, HTMLDivElement>());
 
   // 폭·높이 중 더 빡빡한 쪽에 맞춰 스케일 — 스크롤 없이 항상 사무실 전체가 보인다.
   // 가용 높이 = app-main 높이 - 캐릭터 패널 높이 - 상하 패딩.
@@ -83,11 +84,21 @@ export function IsometricOffice({ configs }: { configs: CharacterConfig[] }) {
     scene.onFramePositions((positions) => {
       const { scale, offsetX } = fitRef.current;
       for (const p of positions) {
-        const el = nametagRefs.current.get(p.id);
-        if (!el) continue;
-        el.style.left = `${p.x * scale + offsetX}px`;
-        el.style.top = `${(p.y - SPRITE_H * PIXEL_SCALE - 2) * scale}px`;
-        el.style.visibility = 'visible';
+        const left = `${p.x * scale + offsetX}px`;
+        const headTop = (p.y - SPRITE_H * PIXEL_SCALE - 2) * scale;
+        const tag = nametagRefs.current.get(p.id);
+        if (tag) {
+          tag.style.left = left;
+          tag.style.top = `${headTop}px`;
+          tag.style.visibility = 'visible';
+        }
+        const bubble = bubbleRefs.current.get(p.id);
+        if (bubble) {
+          bubble.style.left = left;
+          // 이름표(~20px) 위에 말풍선. 위쪽 클리핑을 피해 최소 52px 확보.
+          bubble.style.top = `${Math.max(52, headTop - 24)}px`;
+          bubble.style.visibility = 'visible';
+        }
       }
     });
     return () => { scene.destroy(); sceneRef.current = null; };
@@ -150,6 +161,23 @@ export function IsometricOffice({ configs }: { configs: CharacterConfig[] }) {
         </div>
       ))}
 
+      {/* 말풍선 — 이름표와 같은 방식의 고정 크기 HTML 오버레이 */}
+      {configs.map((c) => {
+        const line = characters[c.id]?.lastLine;
+        return (
+          <div
+            key={`bubble-${c.id}`}
+            className="office-bubble-anchor"
+            ref={(el) => {
+              if (el) bubbleRefs.current.set(c.id, el);
+              else bubbleRefs.current.delete(c.id);
+            }}
+          >
+            {line && <BubbleLine key={line.ts} line={line} />}
+          </div>
+        );
+      })}
+
       {/* 편집 버튼은 스케일 밖 — 확대해도 UI 크기가 일정하다 */}
       <div style={{
         position: 'absolute', top: 8, right: 8, zIndex: 10, display: 'flex', gap: 6,
@@ -169,6 +197,28 @@ export function IsometricOffice({ configs }: { configs: CharacterConfig[] }) {
           {editMode ? '✎ 편집 중 · 클릭해 저장' : '✎ 위치 편집'}
         </button>
       </div>
+    </div>
+  );
+}
+
+/** TTL이 지나면 페이드아웃 후 언마운트되는 말풍선 한 줄. key={line.ts}로
+ *  새 대사마다 리마운트되어 pop-in 애니메이션이 다시 재생된다. */
+function BubbleLine({ line }: { line: { text: string; ts: number; ttlMs: number } }) {
+  const [expired, setExpired] = useState(false);
+  useEffect(() => {
+    const remain = line.ts + line.ttlMs + 300 - Date.now();
+    if (remain <= 0) { setExpired(true); return; }
+    const t = setTimeout(() => setExpired(true), remain);
+    return () => clearTimeout(t);
+  }, [line]);
+  if (expired) return null;
+  const fadeDelayMs = Math.max(0, line.ts + line.ttlMs - Date.now() - 300);
+  return (
+    <div
+      className="office-bubble"
+      style={{ animation: `bubble-pop 160ms ease-out, bubble-fade 300ms linear ${fadeDelayMs}ms forwards` }}
+    >
+      {line.text}
     </div>
   );
 }

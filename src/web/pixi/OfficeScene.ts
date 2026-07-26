@@ -45,7 +45,6 @@ export class OfficeScene {
   private sprites = new Map<CharacterId, CharacterSprite>();
   private seats = new Map<CharacterId, { x: number; y: number }>();
   private lastActivity = new Map<CharacterId, string | undefined>();
-  private lastLineSeen = new Map<CharacterId, number>();
   private pendingSetCharacters: { states: CharacterState[]; configs: CharacterConfig[] } | null = null;
 
   constructor(private canvas: HTMLCanvasElement) {
@@ -151,17 +150,6 @@ export class OfficeScene {
         sprite.setSeatPose(seatPose);
       }
       sprite.setStatus(s.status);
-
-      const line = s.lastLine;
-      if (line) {
-        const prevTs = this.lastLineSeen.get(s.id) ?? 0;
-        const ageMs = Date.now() - line.ts;
-        const remainingMs = line.ttlMs - ageMs;
-        if (line.ts > prevTs && remainingMs > 300) {
-          sprite.showLine(line.text, remainingMs);
-          this.lastLineSeen.set(s.id, line.ts);
-        }
-      }
 
       const currTool = s.currentActivity?.toolName;
       const prevTool = this.lastActivity.get(s.id);

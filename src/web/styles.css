@@ -399,6 +399,53 @@ html, body {
   box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.25);
 }
 
+/* 말풍선 — 캔버스 밖 HTML 오버레이. 앵커는 프레임 콜백이 좌표를 갱신하는
+   0크기 기준점이고, 실제 풍선은 그 위(-100%)에 뜬다. */
+.office-bubble-anchor {
+  position: absolute;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 6;
+}
+
+.office-bubble {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  width: max-content;
+  max-width: 240px;
+  font-family: 'DotGothic16', monospace;
+  font-size: 11px;
+  line-height: 1.35;
+  color: #1f1305;
+  text-align: center;
+  background: #fffdf3;
+  border: 1.5px solid #2a1a0a;
+  border-radius: 8px;
+  padding: 5px 9px;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.15);
+}
+
+/* 꼬리 — 이름표를 향해 아래로 */
+.office-bubble::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  transform: translateX(-50%);
+  border: 7px solid transparent;
+  border-top-color: #2a1a0a;
+  border-bottom: none;
+}
+
+@keyframes bubble-pop {
+  from { transform: translate(-50%, -100%) scale(0.5); opacity: 0; }
+  to   { transform: translate(-50%, -100%) scale(1); opacity: 1; }
+}
+
+@keyframes bubble-fade {
+  to { opacity: 0; }
+}
+
 /* 좌우 2단 — 왼쪽 고정폭 라벨 컬럼, 오른쪽 칩 영역 (줄바꿈은 오른쪽 안에서만) */
 .cap-row {
   display: flex;
